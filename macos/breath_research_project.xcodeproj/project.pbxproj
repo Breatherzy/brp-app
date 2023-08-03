@@ -108,7 +108,6 @@
 				B39B2FD92229A5B1E6056BF6 /* Pods-breath_research_project-macOS.debug.xcconfig */,
 				106D2BFE7D32242C01160AD1 /* Pods-breath_research_project-macOS.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};

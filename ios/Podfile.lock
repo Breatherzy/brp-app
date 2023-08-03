@@ -413,6 +413,8 @@ PODS:
     - React-jsi (= 0.71.12)
     - React-logger (= 0.71.12)
     - React-perflogger (= 0.71.12)
+  - RNCPicker (2.4.10):
+    - React-Core
   - SocketRocket (0.6.1)
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -477,6 +479,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -564,6 +567,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/runtimeexecutor"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNCPicker:
+    :path: "../node_modules/@react-native-picker/picker"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -614,6 +619,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: a283fefb8cc29d9740a7ff2e87f72ad10f25a433
   React-runtimeexecutor: 7902246857a4ead4166869e6c42d4df329ff721d
   ReactCommon: a6d1c76b9e10b439e41db225263341240e1cda9f
+  RNCPicker: 0bc2f0a29abcca7b7ed44a2d036aac9ab6d25700
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: 39310a10944fc864a7550700de349183450f8aaa
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
