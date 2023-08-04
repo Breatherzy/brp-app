@@ -11,9 +11,12 @@
     "windows": "react-native run-windows"
   },
   "dependencies": {
+    "@react-navigation/material-top-tabs": "^6.6.3",
     "react": "18.2.0",
     "react-native": "0.71.12",
     "react-native-macos": "^0.71.27",
+    "react-native-pager-view": "^6.2.0",
+    "react-native-tab-view": "^3.5.2",
     "react-native-windows": "0.71.27"
   },
   "devDependencies": {

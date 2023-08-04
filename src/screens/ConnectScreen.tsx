@@ -45,7 +45,7 @@ const ConnectScreen = () => {
               <Text
                 style={{
                   color: selectedDevices.includes(device.value)
-                    ? 'blue'
+                    ? 'green'
                     : 'black',
                 }}>
                 {device.label}
