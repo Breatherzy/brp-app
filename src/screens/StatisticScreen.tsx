@@ -3,7 +3,7 @@ import React from 'react';
 
 function StatisticScreen() {
   return (
-    <View>
+    <View >
       <Text>Statistic Screen</Text>
     </View>
   );
