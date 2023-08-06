@@ -27,7 +27,7 @@ function ChartsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => resetChart()} style={styles.resetChartStyle}>
-          <Text style={styles.resetChartButtonText}>RESET CHART</Text>
+          <Text style={styles.resetChartButtonText}>RESET</Text>
         </TouchableOpacity>
 
       </View>
@@ -60,6 +60,8 @@ const styles = StyleSheet.create({
   chart: {
     height: "85%",
     backgroundColor: '#FFF',
+    width: "95%",
+    alignSelf: 'center',
   },
   buttons: {
     flexDirection: 'row',
@@ -69,7 +71,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resetChartStyle: {
-    width: "25%",
     height: "75%",
     borderWidth: 1,
     borderColor: 'black',
@@ -82,7 +83,6 @@ const styles = StyleSheet.create({
     
   },
   startChartStyle: {
-    width: "25%",
     height: "75%",
     borderWidth: 1,
     borderColor: 'black',
