@@ -333,6 +333,8 @@ PODS:
   - React-jsinspector (0.71.12)
   - React-logger (0.71.12):
     - glog
+  - react-native-ble-manager (10.1.3):
+    - React-Core
   - react-native-charts-wrapper (0.5.11):
     - Charts (= 4.1.0)
     - React
@@ -476,6 +478,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
+  - react-native-ble-manager (from `../node_modules/react-native-ble-manager`)
   - react-native-charts-wrapper (from `../node_modules/react-native-charts-wrapper`)
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -555,6 +558,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   React-logger:
     :path: "../node_modules/react-native/ReactCommon/logger"
+  react-native-ble-manager:
+    :path: "../node_modules/react-native-ble-manager"
   react-native-charts-wrapper:
     :path: "../node_modules/react-native-charts-wrapper"
   react-native-pager-view:
@@ -623,6 +628,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 509cd947c28834614808ce056ee8eb700a0662aa
   React-jsinspector: ec4dcbfb1f4e72f04f826a0301eceee5fa7ca540
   React-logger: 35538accacf2583693fbc3ee8b53e69a1776fcee
+  react-native-ble-manager: 86847e55815e3c8177191395d9308b587e456259
   react-native-charts-wrapper: 4461b72f48e737a490e968bf2468cc0fd2281681
   react-native-pager-view: 0ccb8bf60e2ebd38b1f3669fa3650ecce81db2df
   React-perflogger: 75b0e25075c67565a830985f3c373e2eae5389e0
