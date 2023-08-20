@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
 import { bytesToString } from "convert-string";
+import { useChartData } from '../hooks/ChartDataHook';  // Ensure the path is correct
+
 
 
 const BleManagerModule = NativeModules.BleManager;
@@ -19,6 +21,8 @@ const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 
 const ConnectScreen = () => {
+  const { setDataPoints } = useChartData();
+
   const [notifyValueFromBLE, setNotifyValue] = useState(0);
   const [devices, setDevices] = useState<Array<{ label: string, value: string }>>([]);
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
@@ -167,6 +171,7 @@ const ConnectScreen = () => {
     const sumAcc = Math.abs(ax + ay + az);
     console.log(`Acc Values - ax: ${ax}, ay: ${ay}, az: ${az}, sumAcc: ${sumAcc}`);
     setNotifyValue(sumAcc);
+    setDataPoints(prevData => [...prevData, { y: sumAcc }]);
   };
 
   const toggleItem = (value: string) => {

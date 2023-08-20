@@ -1,6 +1,8 @@
 import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
-import React from 'react';
 import {LineChart} from 'react-native-charts-wrapper';
+import React, { useState, useEffect } from 'react';
+import { useChartData } from '../hooks/ChartDataHook';  // Ensure the path is correct
+
 
 function resetChart() {
   
@@ -12,7 +14,19 @@ function startChart() {
 
 
 function ChartsScreen() {
-  
+  const { dataPoints, setDataPoints } = useChartData();
+
+  useEffect(() => {
+    if (dataPoints.length > 300) {
+      setDataPoints(dataPoints.slice(1));
+    }
+  }, [dataPoints]);
+
+  const addDataPoint = (point) => {
+    setDataPoints([...dataPoints, {y: point}]);
+};
+
+  const visibleDataPoints = dataPoints.slice(-150);
 
   return (
     <View style={styles.container}>
@@ -35,7 +49,7 @@ function ChartsScreen() {
       <View style={styles.chart}>
         <LineChart
           style={{flex: 1}} 
-          data={{dataSets:[{label: "Tensometr", values: [{y: 1}, {y: 2}, {y: 1}]}]}}
+          data={{dataSets:[{label: "Tensometr", values: visibleDataPoints}]}}
         />
       </View>
     </View>
