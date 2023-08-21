@@ -5,17 +5,20 @@ import ChartsScreen from './screens/ChartsScreen'; // Make sure the path is corr
 import StatisticScreen from './screens/StatisticScreen'; // Make sure the path is correct
 import {NavigationContainer} from '@react-navigation/native';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import ChartDataContext from './contexts/ChartDataContext';
+import AccelerometerDataContext from './contexts/AccelerometerDataContext';
+import TensometerDataContext from './contexts/TensometerDataContext';
 
 
 const Tab = createMaterialTopTabNavigator();
 
 const App = () => {
-  const [dataPoints, setDataPoints] = useState<Array<{ y: number }>>([]);
+  const [dataPointsAcc, setAccelerometerData] = useState<Array<{ y: number }>>([]);
+  const [dataPointsTens, setTensometerData] = useState<Array<{ y: number }>>([]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <ChartDataContext.Provider value={{ dataPoints, setDataPoints }}>
+      <TensometerDataContext.Provider value={{ dataPointsTens, setTensometerData }}>
+      <AccelerometerDataContext.Provider value={{ dataPointsAcc, setAccelerometerData }}>
         <NavigationContainer>
          <Tab.Navigator>
           <Tab.Screen name="Connection" component={ConnectScreen} />
@@ -23,7 +26,8 @@ const App = () => {
           <Tab.Screen name="Statistics" component={StatisticScreen} />
         </Tab.Navigator>
         </NavigationContainer>
-      </ChartDataContext.Provider>
+      </AccelerometerDataContext.Provider>
+      </TensometerDataContext.Provider>
     </SafeAreaView>
 
   );
