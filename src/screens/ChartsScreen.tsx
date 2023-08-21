@@ -1,4 +1,4 @@
-import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
+import {Text, View, StyleSheet, TouchableOpacity, processColor} from 'react-native';
 import {LineChart} from 'react-native-charts-wrapper';
 import React, { useState, useEffect } from 'react';
 import { useAccelerometerData} from '../hooks/useAccelerometerData'; 
@@ -28,7 +28,7 @@ function ChartsScreen() {
       setAccelerometerData(dataPointsAcc.slice(1));
     }
 
-  }, [dataPointsAcc]);
+  }, [dataPointsAcc, dataPointsTens]);
 
   const visibleTensPoints = dataPointsTens.slice(-150);
   const visibleAccPoints = dataPointsAcc.slice(-150);
@@ -53,10 +53,31 @@ function ChartsScreen() {
       </View>
 
       <View style={styles.chart}>
-        <LineChart
-          style={{flex: 1}} 
-          data={{dataSets:[{label: "Acc", values: visibleAccPoints}]}}
-        />
+      <LineChart
+        style={{flex: 1}} 
+        data={{
+          dataSets: [
+            {
+              values: visibleAccPoints,
+              label: "Acc",
+              config: {
+                color: processColor('red'), 
+                drawCircles: false,
+                lineWidth: 3,
+              }
+            }, 
+            {
+              values: visibleTensPoints,
+              label: "Tens",
+              config: {
+                color: processColor('blue'),
+                drawCircles: false,
+                lineWidth: 3,
+              }
+            }
+          ]
+        }}
+      />
       </View>
     </View>
   );

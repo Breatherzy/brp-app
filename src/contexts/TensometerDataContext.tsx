@@ -1,12 +1,8 @@
 import { createContext } from 'react';
 
-export interface DataPoint {
-  y: number;
-}
-
 export interface TensometerDataContextType {
-  dataPointsTens: DataPoint[];
-  setTensometerData: React.Dispatch<React.SetStateAction<DataPoint[]>>;
+  dataPointsTens: Array<{ y: number }>;
+  setTensometerData: React.Dispatch<React.SetStateAction<Array<{ y: number }>>>;
 }
 
 const TensometerDataContext = createContext<TensometerDataContextType | undefined>(undefined);

@@ -1,12 +1,8 @@
 import { createContext } from 'react';
 
-export interface DataPoint {
-  y: number;
-}
-
 export interface AccelerometerDataContextType {
-  dataPointsAcc: DataPoint[];
-  setAccelerometerData: React.Dispatch<React.SetStateAction<DataPoint[]>>;
+  dataPointsAcc: Array<{ y: number }>;
+  setAccelerometerData: React.Dispatch<React.SetStateAction<Array<{ y: number }>>>;
 }
 
 const AccelerometerDataContext = createContext<AccelerometerDataContextType | undefined>(undefined);
