@@ -1,6 +1,10 @@
-import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
-import React from 'react';
+import {Text, View, StyleSheet, TouchableOpacity, processColor} from 'react-native';
 import {LineChart} from 'react-native-charts-wrapper';
+import React, { useState, useEffect } from 'react';
+import { useAccelerometerData} from '../hooks/useAccelerometerData'; 
+import { useTensometerData } from '../hooks/useTensometerData'; 
+
+
 
 function resetChart() {
   
@@ -12,6 +16,22 @@ function startChart() {
 
 
 function ChartsScreen() {
+  const { dataPointsTens, setTensometerData } = useTensometerData();
+  const { dataPointsAcc,  setAccelerometerData} = useAccelerometerData();
+
+
+  useEffect(() => {
+    if (dataPointsTens.length > 300) {
+      setTensometerData(dataPointsTens.slice(1));
+    }
+    if (dataPointsAcc.length > 300) {
+      setAccelerometerData(dataPointsAcc.slice(1));
+    }
+
+  }, [dataPointsAcc, dataPointsTens]);
+
+  const visibleTensPoints = dataPointsTens.slice(-150);
+  const visibleAccPoints = dataPointsAcc.slice(-150);
   
 
   return (
@@ -33,10 +53,31 @@ function ChartsScreen() {
       </View>
 
       <View style={styles.chart}>
-        <LineChart
-          style={{flex: 1}} 
-          data={{dataSets:[{label: "Tensometr", values: [{y: 1}, {y: 2}, {y: 1}]}]}}
-        />
+      <LineChart
+        style={{flex: 1}} 
+        data={{
+          dataSets: [
+            {
+              values: visibleAccPoints,
+              label: "Acc",
+              config: {
+                color: processColor('red'), 
+                drawCircles: false,
+                lineWidth: 3,
+              }
+            }, 
+            {
+              values: visibleTensPoints,
+              label: "Tens",
+              config: {
+                color: processColor('blue'),
+                drawCircles: false,
+                lineWidth: 3,
+              }
+            }
+          ]
+        }}
+      />
       </View>
     </View>
   );
