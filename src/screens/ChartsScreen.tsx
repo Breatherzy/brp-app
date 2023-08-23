@@ -30,8 +30,44 @@ function ChartsScreen() {
 
   }, [dataPointsAcc, dataPointsTens]);
 
-  const visibleTensPoints = dataPointsTens.slice(-150);
-  const visibleAccPoints = dataPointsAcc.slice(-150);
+  function movingAverage(data: string | any[], n=5) {
+    let result = [];
+    for (let i = 0; i < data.length; i++) {
+      if (i < n-1) {
+        // not enough data to compute average, so just push the current point
+        result.push(data[i]);
+      } else {
+        // compute average of last n points
+        let sum = 0;
+        for (let j = 0; j < n; j++) {
+          sum += data[i-j].y;
+        }
+        result.push({ y: sum/n });
+      }
+    }
+    return result;
+  }
+  
+  function normalize(data: any[]): any {
+    let maxY = Math.max(...data.map((p: { y: any; }) => p.y));
+    let minY = Math.min(...data.map((p: { y: any; }) => p.y));
+    console.log(maxY, minY);
+    return data.map(point => ({
+      y: 2 * (point.y - minY) / (maxY - minY) - 1
+  }));
+  }
+
+  const handleNaN = (data, defaultValue = 0) => 
+    data.map(point => ({
+        y: isNaN(point.y) ? defaultValue : point.y
+    }));
+     
+  const smoothedTensPoints = movingAverage(dataPointsTens);
+  const normalizedTensPoints = handleNaN(normalize(smoothedTensPoints.slice(-150)));;
+
+  const smoothedAccPoints = movingAverage(dataPointsAcc);
+  const normalizedAccPoints = handleNaN(normalize(smoothedAccPoints.slice(-150)));;
+
   
 
   return (
@@ -58,7 +94,7 @@ function ChartsScreen() {
         data={{
           dataSets: [
             {
-              values: visibleAccPoints,
+              values: normalizedAccPoints,
               label: "Acc",
               config: {
                 color: processColor('red'), 
@@ -67,7 +103,7 @@ function ChartsScreen() {
               }
             }, 
             {
-              values: visibleTensPoints,
+              values: normalizedTensPoints,
               label: "Tens",
               config: {
                 color: processColor('blue'),
