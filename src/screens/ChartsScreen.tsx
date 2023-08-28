@@ -3,7 +3,7 @@ import {LineChart} from 'react-native-charts-wrapper';
 import React, { useState, useEffect } from 'react';
 import { useAccelerometerData} from '../hooks/useAccelerometerData'; 
 import { useTensometerData } from '../hooks/useTensometerData'; 
-
+import { usePrediction } from '../components/CoreMLModule';
 
 
 function resetChart() {
@@ -12,6 +12,10 @@ function resetChart() {
 
 function startChart() {
   
+}
+
+function testPred() {
+  usePrediction();
 }
 
 
@@ -80,6 +84,10 @@ function ChartsScreen() {
 
         <TouchableOpacity onPress={() => startChart()} style={styles.startChartStyle}>
           <Text style={styles.startChartButtonText}>START</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => testPred()} style={styles.startChartStyle}>
+          <Text style={styles.startChartButtonText}>TEST</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => resetChart()} style={styles.resetChartStyle}>
