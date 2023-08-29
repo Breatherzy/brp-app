@@ -40,8 +40,6 @@ RCT_REMAP_METHOD(predict, variable1:(double)variable1 variable2:(double)variable
         NSLog(@"Debug: Failed to create inputArray");
         reject(@"ERROR", @"Failed to create input array", nil);
         return;
-    } else {
-        NSLog(@"Debug: inputArray created successfully with shape: %@", inputArray.shape);
     }
 
   networkTest *model = [[networkTest alloc] init];
@@ -50,8 +48,6 @@ RCT_REMAP_METHOD(predict, variable1:(double)variable1 variable2:(double)variable
           NSLog(@"Debug: Failed to instantiate model");
           reject(@"ERROR", @"Failed to instantiate model", nil);
           return;
-      } else {
-          NSLog(@"Debug: Model instantiated successfully");
       }
   
      NSError *predictionError;
@@ -62,11 +58,9 @@ RCT_REMAP_METHOD(predict, variable1:(double)variable1 variable2:(double)variable
       reject(@"ERROR", @"Failed to run the model", predictionError);
       return;
   } else if (!output || !output.Identity) {
-      NSLog(@"Debug: Prediction output or output.Identity is null");
-      reject(@"ERROR", @"Prediction resulted in a null output", nil);
-      return;
-  } else {
-      NSLog(@"Debug: Prediction successful with output: %@", output.Identity);
+    NSLog(@"Debug: Prediction output or output.Identity is null");
+    reject(@"ERROR", @"Prediction resulted in a null output", nil);
+    return;
   }
   
     NSArray *resultArray = arrayFromMultiArray(output.Identity);

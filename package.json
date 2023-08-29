@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@react-navigation/material-top-tabs": "^6.6.3",
+    "@types/node": "^20.5.7",
     "convert-string": "^0.1.0",
     "react": "18.2.0",
     "react-native": "0.71.12",

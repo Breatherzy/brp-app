@@ -5,6 +5,8 @@ import { useAccelerometerData} from '../hooks/useAccelerometerData';
 import { useTensometerData } from '../hooks/useTensometerData'; 
 import { usePrediction } from '../components/CoreMLModule';
 
+const RANGE = 300;
+const COLOR_WINDOW = 9; // moving average (5) + prediction (4)
 
 function resetChart() {
   
@@ -14,25 +16,25 @@ function startChart() {
   
 }
 
-function testPred() {
-  usePrediction();
-}
-
 
 function ChartsScreen() {
   const { dataPointsTens, setTensometerData } = useTensometerData();
   const { dataPointsAcc,  setAccelerometerData} = useAccelerometerData();
-
+  const [tensColors, setTensColors] = useState([processColor('red')]);
+  
 
   useEffect(() => {
-    if (dataPointsTens.length > 300) {
+    if (dataPointsTens.length > RANGE) {
       setTensometerData(dataPointsTens.slice(1));
     }
-    if (dataPointsAcc.length > 300) {
+    if (dataPointsAcc.length > RANGE) {
       setAccelerometerData(dataPointsAcc.slice(1));
     }
+    if (tensColors.length > RANGE - COLOR_WINDOW) {
+      setTensColors(tensColors.slice(1));
+    }
 
-  }, [dataPointsAcc, dataPointsTens]);
+  }, [dataPointsTens]);
 
   function movingAverage(data: string | any[], n=5) {
     let result = [];
@@ -55,7 +57,6 @@ function ChartsScreen() {
   function normalize(data: any[]): any {
     let maxY = Math.max(...data.map((p: { y: any; }) => p.y));
     let minY = Math.min(...data.map((p: { y: any; }) => p.y));
-    console.log(maxY, minY);
     return data.map(point => ({
       y: 2 * (point.y - minY) / (maxY - minY) - 1
   }));
@@ -65,13 +66,36 @@ function ChartsScreen() {
     data.map(point => ({
         y: isNaN(point.y) ? defaultValue : point.y
     }));
+
+  async function testPred() {
+    const lastFivePoints = normalizedTensPoints.slice(-5);
+    const startTime = Date.now(); // Mark the start time
+    const prediction = await usePrediction(lastFivePoints);
+    const endTime = Date.now(); // Mark the end time
+    console.log(`Prediction took ${endTime - startTime} ms`);
+    let newColor = processColor('green');
+    
+    if (prediction && prediction[0]) {
+      if (prediction[0] > 0.15) {
+        newColor = processColor('red');
+      } else if (prediction[0] < -0.15) {
+        newColor = processColor('blue');
+      }
+    }
+    setTensColors(prevColors => [...prevColors, newColor]);
+  }
+    
+    
      
   const smoothedTensPoints = movingAverage(dataPointsTens);
-  const normalizedTensPoints = handleNaN(normalize(smoothedTensPoints.slice(-150)));;
+  const normalizedTensPoints = handleNaN(normalize(smoothedTensPoints.slice(-150)));
 
   const smoothedAccPoints = movingAverage(dataPointsAcc);
-  const normalizedAccPoints = handleNaN(normalize(smoothedAccPoints.slice(-150)));;
+  const normalizedAccPoints = handleNaN(normalize(smoothedAccPoints.slice(-150)));
 
+  if (normalizedTensPoints.length >= 5) {
+    testPred();
+  }
   
 
   return (
@@ -84,10 +108,6 @@ function ChartsScreen() {
 
         <TouchableOpacity onPress={() => startChart()} style={styles.startChartStyle}>
           <Text style={styles.startChartButtonText}>START</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => testPred()} style={styles.startChartStyle}>
-          <Text style={styles.startChartButtonText}>TEST</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => resetChart()} style={styles.resetChartStyle}>
