@@ -10,6 +10,23 @@
 #import "networkTest.h"
 
 @implementation MLBridge
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        model = [[networkTest alloc] init];
+        if (!model) {
+            NSLog(@"Failed to instantiate the CoreML model");
+        }
+    }
+    return self;
+}
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 RCT_EXPORT_MODULE();
 
 - (MLMultiArray *)createMultiArrayFromNumbers:(NSArray<NSNumber *> *)numbers {
@@ -41,8 +58,6 @@ RCT_REMAP_METHOD(predict, variable1:(double)variable1 variable2:(double)variable
         reject(@"ERROR", @"Failed to create input array", nil);
         return;
     }
-
-  networkTest *model = [[networkTest alloc] init];
   
       if (!model) {
           NSLog(@"Debug: Failed to instantiate model");
