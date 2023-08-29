@@ -3,8 +3,11 @@ import {LineChart} from 'react-native-charts-wrapper';
 import React, { useState, useEffect } from 'react';
 import { useAccelerometerData} from '../hooks/useAccelerometerData'; 
 import { useTensometerData } from '../hooks/useTensometerData'; 
+import { usePrediction } from '../components/CoreMLModule';
 
-
+const RANGE = 300;
+const CHART_WINDOW = 150;
+const MOVING_AVERAGE_WINDOW = 5;
 
 function resetChart() {
   
@@ -18,19 +21,45 @@ function startChart() {
 function ChartsScreen() {
   const { dataPointsTens, setTensometerData } = useTensometerData();
   const { dataPointsAcc,  setAccelerometerData} = useAccelerometerData();
-
+  const [tensColors, setTensColors] = useState([
+                                              processColor('red'), 
+                                              processColor('red'), 
+                                              processColor('red'), 
+                                              processColor('red'), 
+                                              processColor('red')
+                                              ]);
+  const [normalizedTensPoints, setNormalizedTensPoints] = useState([]);
+  const [normalizedAccPoints, setNormalizedAccPoints] = useState([]);
+  
 
   useEffect(() => {
-    if (dataPointsTens.length > 300) {
-      setTensometerData(dataPointsTens.slice(1));
+
+    if (dataPointsTens.length > RANGE) {
+      dataPointsTens.shift();
+      setTensometerData(dataPointsTens);
     }
-    if (dataPointsAcc.length > 300) {
-      setAccelerometerData(dataPointsAcc.slice(1));
+    if (dataPointsAcc.length > RANGE) {
+      dataPointsAcc.shift();
+      setAccelerometerData(dataPointsAcc);
     }
 
-  }, [dataPointsAcc, dataPointsTens]);
+    const smoothedTensPoints = movingAverage(dataPointsTens.slice(-CHART_WINDOW));
+    setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
 
-  function movingAverage(data: string | any[], n=5) {
+    const smoothedAccPoints = movingAverage(dataPointsAcc.slice(-CHART_WINDOW));
+    setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
+
+    if (normalizedTensPoints.length > MOVING_AVERAGE_WINDOW) {
+      testPred();
+    }
+
+    if (tensColors.length >= RANGE) {
+      setTensColors(tensColors.slice(-RANGE+1));
+    }    
+
+  }, [dataPointsTens]);
+
+  function movingAverage(data: string | any[], n=MOVING_AVERAGE_WINDOW) {
     let result = [];
     for (let i = 0; i < data.length; i++) {
       if (i < n-1) {
@@ -51,24 +80,32 @@ function ChartsScreen() {
   function normalize(data: any[]): any {
     let maxY = Math.max(...data.map((p: { y: any; }) => p.y));
     let minY = Math.min(...data.map((p: { y: any; }) => p.y));
-    console.log(maxY, minY);
     return data.map(point => ({
       y: 2 * (point.y - minY) / (maxY - minY) - 1
-  }));
+    }));
   }
 
-  const handleNaN = (data, defaultValue = 0) => 
-    data.map(point => ({
+  function handleNaN(data, defaultValue = 0){
+  
+    return data.map(point => ({
         y: isNaN(point.y) ? defaultValue : point.y
     }));
-     
-  const smoothedTensPoints = movingAverage(dataPointsTens);
-  const normalizedTensPoints = handleNaN(normalize(smoothedTensPoints.slice(-150)));;
+  }
 
-  const smoothedAccPoints = movingAverage(dataPointsAcc);
-  const normalizedAccPoints = handleNaN(normalize(smoothedAccPoints.slice(-150)));;
-
-  
+  async function testPred() {
+    const lastFivePoints = normalizedTensPoints.slice(-5);
+    const prediction = await usePrediction(lastFivePoints);
+    let newColor = processColor('green');
+    
+    if (prediction && prediction[0]) {
+      if (prediction[0] > 0.42) {
+        newColor = processColor('red');
+      } else if (prediction[0] < -0.42) {
+        newColor = processColor('blue');
+      }
+    }
+    setTensColors(prevColors => [...prevColors, newColor]);
+  }
 
   return (
     <View style={styles.container}>
@@ -106,7 +143,7 @@ function ChartsScreen() {
               values: normalizedTensPoints,
               label: "Tens",
               config: {
-                color: processColor('blue'),
+                colors: tensColors.slice(-CHART_WINDOW+1),
                 drawCircles: false,
                 lineWidth: 3,
               }
