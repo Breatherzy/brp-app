@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {SafeAreaView, StyleSheet} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {NativeModules, SafeAreaView, StyleSheet, Platform} from 'react-native';
 import ConnectScreen from './screens/ConnectScreen'; // Make sure the path is correct
 import ChartsScreen from './screens/ChartsScreen'; // Make sure the path is correct
 import StatisticScreen from './screens/StatisticScreen'; // Make sure the path is correct
@@ -14,6 +14,12 @@ const Tab = createMaterialTopTabNavigator();
 const App = () => {
   const [dataPointsAcc, setAccelerometerData] = useState<Array<{ y: number }>>([]);
   const [dataPointsTens, setTensometerData] = useState<Array<{ y: number }>>([]);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      NativeModules.TFLiteModule.loadModel();
+    }
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>

@@ -3,7 +3,7 @@ import {LineChart} from 'react-native-charts-wrapper';
 import React, { useState, useEffect } from 'react';
 import { useAccelerometerData} from '../hooks/useAccelerometerData'; 
 import { useTensometerData } from '../hooks/useTensometerData'; 
-import { usePrediction } from '../components/CoreMLModule';
+import { usePrediction } from '../components/NeuralNetworkModel';
 
 const RANGE = 300;
 const CHART_WINDOW = 150;
@@ -96,7 +96,6 @@ function ChartsScreen() {
     const lastFivePoints = normalizedTensPoints.slice(-5);
     const prediction = await usePrediction(lastFivePoints);
     let newColor = processColor('green');
-    
     if (prediction && prediction[0]) {
       if (prediction[0] > 0.42) {
         newColor = processColor('red');
@@ -105,6 +104,11 @@ function ChartsScreen() {
       }
     }
     setTensColors(prevColors => [...prevColors, newColor]);
+  }
+
+  async function testPred_() {
+    const prediction = await usePrediction([{y: 0.1}, {y: 0.2}, {y: 0.3}, {y: 0.4}, {y: 0.5}]);
+    console.log(prediction);
   }
 
   return (
@@ -119,6 +123,10 @@ function ChartsScreen() {
           <Text style={styles.startChartButtonText}>START</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => testPred_()} style={styles.startChartStyle}>
+          <Text style={styles.startChartButtonText}>TEST</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={() => resetChart()} style={styles.resetChartStyle}>
           <Text style={styles.resetChartButtonText}>RESET</Text>
         </TouchableOpacity>
@@ -127,6 +135,7 @@ function ChartsScreen() {
 
       <View style={styles.chart}>
       <LineChart
+        legend={{enabled: false}}
         style={{flex: 1}} 
         data={{
           dataSets: [
@@ -146,6 +155,7 @@ function ChartsScreen() {
                 colors: tensColors.slice(-CHART_WINDOW+1),
                 drawCircles: false,
                 lineWidth: 3,
+                drawValues: false,
               }
             }
           ]

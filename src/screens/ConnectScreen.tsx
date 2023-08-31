@@ -11,7 +11,6 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
-import { bytesToString } from "convert-string";
 import { useAccelerometerData } from '../hooks/useAccelerometerData';
 import { useTensometerData } from '../hooks/useTensometerData';
 
