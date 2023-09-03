@@ -13,10 +13,6 @@ function resetChart() {
   
 }
 
-function startChart() {
-  
-}
-
 
 function ChartsScreen() {
   const { dataPointsTens, setTensometerData } = useTensometerData();
@@ -30,32 +26,38 @@ function ChartsScreen() {
                                               ]);
   const [normalizedTensPoints, setNormalizedTensPoints] = useState([]);
   const [normalizedAccPoints, setNormalizedAccPoints] = useState([]);
+  const [isRunning, setIsRunning] = useState(false);
+
+  function startChart() {
+    setIsRunning(!isRunning);
+  }
   
 
   useEffect(() => {
+    if (isRunning) {
+      if (dataPointsTens.length > RANGE) {
+        dataPointsTens.shift();
+        setTensometerData(dataPointsTens);
+      }
+      if (dataPointsAcc.length > RANGE) {
+        dataPointsAcc.shift();
+        setAccelerometerData(dataPointsAcc);
+      }
 
-    if (dataPointsTens.length > RANGE) {
-      dataPointsTens.shift();
-      setTensometerData(dataPointsTens);
+      const smoothedTensPoints = movingAverage(dataPointsTens.slice(-CHART_WINDOW));
+      setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
+
+      const smoothedAccPoints = movingAverage(dataPointsAcc.slice(-CHART_WINDOW));
+      setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
+
+      if (normalizedTensPoints.length > MOVING_AVERAGE_WINDOW) {
+        testPred();
+      }
+
+      if (tensColors.length >= RANGE) {
+        setTensColors(tensColors.slice(-RANGE+1));
+      }    
     }
-    if (dataPointsAcc.length > RANGE) {
-      dataPointsAcc.shift();
-      setAccelerometerData(dataPointsAcc);
-    }
-
-    const smoothedTensPoints = movingAverage(dataPointsTens.slice(-CHART_WINDOW));
-    setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
-
-    const smoothedAccPoints = movingAverage(dataPointsAcc.slice(-CHART_WINDOW));
-    setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
-
-    if (normalizedTensPoints.length > MOVING_AVERAGE_WINDOW) {
-      testPred();
-    }
-
-    if (tensColors.length >= RANGE) {
-      setTensColors(tensColors.slice(-RANGE+1));
-    }    
 
   }, [dataPointsTens]);
 

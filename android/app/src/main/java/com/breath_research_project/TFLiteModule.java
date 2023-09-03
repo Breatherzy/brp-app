@@ -49,9 +49,9 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
         }
     }
 
-    @ReactMethod
+     @ReactMethod
     public void predict(float variable1, float variable2, float variable3, float variable4, float variable5, Promise promise) {
-        if (tflite == null) {
+         if (tflite == null) {
             promise.reject("MODEL_NOT_LOADED", "Model not loaded. Make sure to call loadModel() first.");
             return;
         }
@@ -65,24 +65,25 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
 
         // Load data into TensorBuffer
         inputBuffer.loadArray(inputArray);
-        TensorBuffer outputBuffer2 = TensorBuffer.createFixedSize(tflite.getOutputTensor(0).shape(), DataType.FLOAT32);
 
-        synchronized (tflite) {  // synchronized block to avoid concurrent access to the Interpreter
-            tflite.run(inputBuffer.getBuffer(), outputBuffer2.getBuffer());
-        }
+        float[] emptyData = new float[tflite.getOutputTensor(0).shape()[1]];
+        Arrays.fill(emptyData, 0);
+        outputBuffer.loadArray(emptyData);
 
-        promise.resolve(outputBuffer2.getFloatValue(0));
+        tflite.run(inputBuffer.getBuffer(), outputBuffer.getBuffer());
+
+        promise.resolve(outputBuffer.getFloatValue(0));
     }
 
     private MappedByteBuffer loadModelFile() throws IOException {
         AssetManager assetManager = getReactApplicationContext().getAssets();
         AssetFileDescriptor fileDescriptor = assetManager.openFd("networkTest.tflite");
-        
-        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
-        FileChannel fileChannel = inputStream.getChannel();
-        long startOffset = fileDescriptor.getStartOffset();
-        long declaredLength = fileDescriptor.getDeclaredLength();
-        
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
+
+        try (FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
+             FileChannel fileChannel = inputStream.getChannel()) {
+            long startOffset = fileDescriptor.getStartOffset();
+            long declaredLength = fileDescriptor.getDeclaredLength();
+            return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
+        }
     }
 }

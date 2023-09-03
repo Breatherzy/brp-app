@@ -32,12 +32,6 @@ const ConnectScreen = () => {
   const TENS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
   const TENS_CHARACTERISTIC_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 
-  const lastAccUpdateRef = useRef<number>(0);
-  const lastTensUpdateRef = useRef<number>(0);
-  const accTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const tensTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-
   useEffect(() => {
     /**Initialize the BLE */
     BleManager.start({ showAlert: false, forceLegacy: true });
@@ -57,13 +51,6 @@ const ConnectScreen = () => {
         ble4.remove()
     })
 }, []);
-
-  useEffect(() => {
-    return () => {
-        if (accTimeoutRef.current) clearTimeout(accTimeoutRef.current);
-        if (tensTimeoutRef.current) clearTimeout(tensTimeoutRef.current);
-    }
-  }, []);
 
 
 const handleDiscoverPeripheral = (peripheral: { id: string; name: any; }) => {
@@ -217,32 +204,13 @@ const handleDiscoverPeripheral = (peripheral: { id: string; name: any; }) => {
 };
 
   const handleUpdateValueForCharacteristic = (data) => {
-    const currentTime = Date.now();
     if (data.service == ACC_SERVICE_UUID) { 
       const accelerometerValue = computeAccelerometerValue(data);
-      
-      if (currentTime - lastAccUpdateRef.current >= 100) {
-        lastAccUpdateRef.current = currentTime;
         setAccelerometerData(prevData => [...prevData, { y: accelerometerValue }]);
-      } else if (!accTimeoutRef.current) {
-        accTimeoutRef.current = setTimeout(() => {
-          setAccelerometerData(prevData => [...prevData, { y: accelerometerValue }]);
-          accTimeoutRef.current = null;
-        }, 100 - (currentTime - lastAccUpdateRef.current));
-      }
     } else if (data.service == TENS_SERVICE_UUID) {
       const tensometerData = computeTensometerValue(data);
-
       if (tensometerData && typeof tensometerData.force === 'number') {
-        if (currentTime - lastTensUpdateRef.current >= 100) {
-          lastTensUpdateRef.current = currentTime;
           setTensometerData(prevData => [...prevData, { y: tensometerData.force }]);
-        } else if (!tensTimeoutRef.current) {
-          tensTimeoutRef.current = setTimeout(() => {
-            setTensometerData(prevData => [...prevData, { y: tensometerData.force }]);
-            tensTimeoutRef.current = null;
-          }, 100 - (currentTime - lastTensUpdateRef.current));
-        }
       } else {
         console.error("Failed to compute tensometer value.");
       }
