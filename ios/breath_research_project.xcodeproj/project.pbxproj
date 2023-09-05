@@ -14,6 +14,7 @@
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		7699B88040F8A987B510C191 /* libPods-breath_research_project-breath_research_projectTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-breath_research_project-breath_research_projectTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		8853930F2AA69017001F857E /* debug3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8853930E2AA69017001F857E /* debug3.txt */; };
 		88F915E32A9D464F00E6C085 /* MLBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 88F915E22A9D464F00E6C085 /* MLBridge.m */; };
 		88F915E62A9D46D700E6C085 /* networkTest.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 88F915E52A9D46D700E6C085 /* networkTest.mlmodel */; };
 /* End PBXBuildFile section */
@@ -44,6 +45,7 @@
 		5B7EB9410499542E8C5724F5 /* Pods-breath_research_project-breath_research_projectTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-breath_research_project-breath_research_projectTests.debug.xcconfig"; path = "Target Support Files/Pods-breath_research_project-breath_research_projectTests/Pods-breath_research_project-breath_research_projectTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-breath_research_project.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-breath_research_project.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = breath_research_project/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		8853930E2AA69017001F857E /* debug3.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = debug3.txt; path = ../src/assets/debug3.txt; sourceTree = "<group>"; };
 		88F915D92A9D3BCB00E6C085 /* breath_research_project-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "breath_research_project-Bridging-Header.h"; sourceTree = "<group>"; };
 		88F915E22A9D464F00E6C085 /* MLBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MLBridge.m; sourceTree = "<group>"; };
 		88F915E42A9D466000E6C085 /* MLBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MLBridge.h; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				8853930E2AA69017001F857E /* debug3.txt */,
 				88F915E52A9D46D700E6C085 /* networkTest.mlmodel */,
 				88F915E42A9D466000E6C085 /* MLBridge.h */,
 				88F915E22A9D464F00E6C085 /* MLBridge.m */,
@@ -210,7 +213,8 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1210;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					00E356ED1AD99517003FC87E = {
 						CreatedOnToolsVersion = 6.2;
@@ -253,6 +257,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
+				8853930F2AA69017001F857E /* debug3.txt in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -444,6 +449,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5B7EB9410499542E8C5724F5 /* Pods-breath_research_project-breath_research_projectTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEVELOPMENT_TEAM = K6FJ2693P8;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -472,6 +478,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 89C6BE57DB24E9ADA2F236DE /* Pods-breath_research_project-breath_research_projectTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = K6FJ2693P8;

@@ -1,13 +1,17 @@
-import {Text, View, StyleSheet, TouchableOpacity, processColor} from 'react-native';
+import {Text, View, StyleSheet, TouchableOpacity, processColor, Platform} from 'react-native';
 import {LineChart} from 'react-native-charts-wrapper';
 import React, { useState, useEffect } from 'react';
 import { useAccelerometerData} from '../hooks/useAccelerometerData'; 
 import { useTensometerData } from '../hooks/useTensometerData'; 
 import { usePrediction } from '../components/NeuralNetworkModel';
+import RNFS from 'react-native-fs';
+
 
 const RANGE = 300;
 const CHART_WINDOW = 150;
 const MOVING_AVERAGE_WINDOW = 5;
+const TIME_INTERVAL = 50;
+const PRED_MARGIN = 0.42;
 
 function resetChart() {
   
@@ -99,19 +103,47 @@ function ChartsScreen() {
     const prediction = await usePrediction(lastFivePoints);
     let newColor = processColor('green');
     if (prediction && prediction[0]) {
-      if (prediction[0] > 0.42) {
+      if (prediction[0] > PRED_MARGIN) {
         newColor = processColor('red');
-      } else if (prediction[0] < -0.42) {
+      } else if (prediction[0] < -PRED_MARGIN) {
         newColor = processColor('blue');
       }
     }
     setTensColors(prevColors => [...prevColors, newColor]);
   }
 
-  async function testPred_() {
-    const prediction = await usePrediction([{y: 0.1}, {y: 0.2}, {y: 0.3}, {y: 0.4}, {y: 0.5}]);
-    console.log(prediction);
+  async function startDemoVersion() {
+    readFileAndUpdate();
+    setIsRunning(true);
   }
+
+  async function readFileAndUpdate() {
+    try {
+      let content;
+      
+      if (Platform.OS === 'ios') {
+          const filePath = `${RNFS.MainBundlePath}/debug3.txt`;
+          content = await RNFS.readFile(filePath, 'utf8');
+      } else if (Platform.OS === 'android') {
+          const assetPath = 'debug3.txt';
+          content = await RNFS.readFileAssets(assetPath, 'utf8');
+      }
+      
+      const lines = content.split('\n');
+      for (let line of lines) {
+        const match = line.match(/Punkt y:(\d+\.\d+)/);
+        if (match && match[1]) {
+          console.log(match[1]);
+          let yValue = parseFloat(match[1]);
+          setTensometerData(prevData => [...prevData, { y: yValue }]);
+          await new Promise<void>(resolve => setTimeout(resolve, TIME_INTERVAL));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to read from file', error);
+    }
+  }
+  
 
   return (
     <View style={styles.container}>
@@ -125,7 +157,7 @@ function ChartsScreen() {
           <Text style={styles.startChartButtonText}>START</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => testPred_()} style={styles.startChartStyle}>
+        <TouchableOpacity onPress={() => startDemoVersion()} style={styles.startChartStyle}>
           <Text style={styles.startChartButtonText}>TEST</Text>
         </TouchableOpacity>
 
