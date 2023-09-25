@@ -11,7 +11,7 @@ const RANGE = 300;
 const CHART_WINDOW = 150;
 const MOVING_AVERAGE_WINDOW = 5;
 const TIME_INTERVAL = 50;
-const PRED_MARGIN = 0.42;
+const PRED_MARGIN = 0.8;
 
 function resetChart() {
   
@@ -101,8 +101,9 @@ function ChartsScreen() {
   async function testPred() {
     const lastFivePoints = normalizedTensPoints.slice(-5);
     const prediction = await usePrediction(lastFivePoints);
+    const amplitude =  Math.max(...lastFivePoints.map((p: { y: any; }) => p.y)) - Math.min(...lastFivePoints.map((p: { y: any; }) => p.y));
     let newColor = processColor('green');
-    if (prediction && prediction[0]) {
+    if (prediction && prediction[0] && amplitude > 0.03) {
       if (prediction[0] > PRED_MARGIN) {
         newColor = processColor('red');
       } else if (prediction[0] < -PRED_MARGIN) {
@@ -133,7 +134,6 @@ function ChartsScreen() {
       for (let line of lines) {
         const match = line.match(/Punkt y:(\d+\.\d+)/);
         if (match && match[1]) {
-          console.log(match[1]);
           let yValue = parseFloat(match[1]);
           setTensometerData(prevData => [...prevData, { y: yValue }]);
           await new Promise<void>(resolve => setTimeout(resolve, TIME_INTERVAL));
