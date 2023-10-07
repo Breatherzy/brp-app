@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
+    "androidrel": "react-native run-android --mode release",
     "ios": "react-native run-ios --simulator=\"IPhone 14\"",
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "windows": "react-native run-windows"
+    "stop": "taskkill /F /IM java.exe && taskkill /F /IM adb.exe"
   },
   "dependencies": {
     "@react-navigation/material-top-tabs": "^6.6.3",
