@@ -1,25 +1,12 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  NativeModules,
-  NativeEventEmitter,
-  Platform,
-  PermissionsAndroid,
-} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import React from 'react';
-import ChartsScreen from './ChartsScreen';
-import { useUserData } from '../hooks/useUserData';
-
+import {useUserData} from '../hooks/useUserData';
 
 function StatisticScreen() {
-
-  const {seconds, setSeconds } = useUserData();
+  const {seconds, setSeconds} = useUserData();
   const {breathAmount, setBreathAmount} = useUserData();
 
-  const averageBreathAmount = breathAmount*60/seconds;
+  const averageBreathAmount = (breathAmount * 60) / seconds;
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -27,21 +14,14 @@ function StatisticScreen() {
       </View>
       <View style={styles.informations}>
         <View style={styles.textsBox}>
-          <Text style={styles.breathCounterText}>
-            Ilość oddechów:
-          </Text>
-          <Text style={styles.averageBreaths}>
-            Średnia ilość oddechów:
-          </Text>
+          <Text style={styles.breathCounterText}>Ilość oddechów:</Text>
+          <Text style={styles.averageBreaths}>Średnia ilość oddechów:</Text>
         </View>
         <View style={styles.numbersBox}>
-          <Text style={styles.breathCounter}>
-            {breathAmount}
-          </Text>
+          <Text style={styles.breathCounter}>{breathAmount}</Text>
           <Text style={styles.averageBreathAmount}>
             {parseFloat(averageBreathAmount.toFixed(2))}
           </Text>
-
         </View>
       </View>
     </View>
@@ -105,8 +85,6 @@ const styles = StyleSheet.create({
     color: 'black',
     justifyContent: 'center',
     alignSelf: 'center',
-  }
-
-
-})
+  },
+});
 export default StatisticScreen;

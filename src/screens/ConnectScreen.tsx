@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -11,138 +11,152 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
-import { useAccelerometerData } from '../hooks/useAccelerometerData';
-import { useTensometerData } from '../hooks/useTensometerData';
-
+import {useAccelerometerData} from '../hooks/useAccelerometerData';
+import {useTensometerData} from '../hooks/useTensometerData';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-
 const ConnectScreen = () => {
-  const { setAccelerometerData } = useAccelerometerData();
-  const { setTensometerData } = useTensometerData();
+  const {setAccPoints} = useAccelerometerData();
+  const {setTensPoints} = useTensometerData();
 
-  const [devices, setDevices] = useState<Array<{ label: string, value: string }>>([]);
+  const [devices, setDevices] = useState<Array<{label: string; value: string}>>(
+    [],
+  );
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
 
-  const ACC_SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
-  const ACC_CHARACTERISTIC_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
-  const TENS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-  const TENS_CHARACTERISTIC_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
+  const ACC_SERVICE_UUID = '0000ffe5-0000-1000-8000-00805f9a34fb';
+  const ACC_CHARACTERISTIC_UUID = '0000ffe4-0000-1000-8000-00805f9a34fb';
+  const TENS_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+  const TENS_CHARACTERISTIC_UUID = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
 
   useEffect(() => {
     /**Initialize the BLE */
-    BleManager.start({ showAlert: false, forceLegacy: true });
+    BleManager.start({showAlert: false, forceLegacy: true});
 
     /**
-     *//* Listener to handle the operation when device is connected , disconnected Handle stop scan
+     */ /* Listener to handle the operation when device is connected , disconnected Handle stop scan
 , when any value will update from BLE device
 */
-    const ble1 = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral);
-    const ble4 = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic);
+    const ble1 = bleManagerEmitter.addListener(
+      'BleManagerDiscoverPeripheral',
+      handleDiscoverPeripheral,
+    );
+    const ble4 = bleManagerEmitter.addListener(
+      'BleManagerDidUpdateValueForCharacteristic',
+      handleUpdateValueForCharacteristic,
+    );
 
     //*Checking the Bluetooth Permission
-    checkForBluetoothPermission()
+    checkForBluetoothPermission();
 
-    return (() => {
-        ble1.remove()
-        ble4.remove()
-    })
-}, []);
+    return () => {
+      ble1.remove();
+      ble4.remove();
+    };
+  }, []);
 
-
-const handleDiscoverPeripheral = (peripheral: { id: string; name: any; }) => {
-  setDevices(prevDevices => {
-    if (!prevDevices.find(device => device.value === peripheral.id)) {
-      return [...prevDevices, { label: peripheral.name, value: peripheral.id }];
-    } else {
-      return prevDevices;
-    }
-  }
-  );
-}
+  const handleDiscoverPeripheral = (peripheral: {id: string; name: any}) => {
+    setDevices(prevDevices => {
+      if (!prevDevices.find(device => device.value === peripheral.id)) {
+        return [...prevDevices, {label: peripheral.name, value: peripheral.id}];
+      } else {
+        return prevDevices;
+      }
+    });
+  };
 
   const setCharacteristicNotification = (deviceID: string) => {
     BleManager.retrieveServices(deviceID)
-      .then((peripheralInfo) => {
-          BleManager.startNotification(deviceID, ACC_SERVICE_UUID, ACC_CHARACTERISTIC_UUID)
+      .then(peripheralInfo => {
+        BleManager.startNotification(
+          deviceID,
+          ACC_SERVICE_UUID,
+          ACC_CHARACTERISTIC_UUID,
+        )
           .then(() => {
-              console.log('Started notification for accelerometer characteristic');
+            console.log(
+              'Started notification for accelerometer characteristic',
+            );
           })
-          .catch((error) => {
-              console.log('Notification start failed for accelerometer:', error);
+          .catch(error => {
+            console.log('Notification start failed for accelerometer:', error);
           });
-  
-          BleManager.startNotification(deviceID, TENS_SERVICE_UUID, TENS_CHARACTERISTIC_UUID)
+
+        BleManager.startNotification(
+          deviceID,
+          TENS_SERVICE_UUID,
+          TENS_CHARACTERISTIC_UUID,
+        )
           .then(() => {
-              console.log('Started notification for tensometer characteristic');
+            console.log('Started notification for tensometer characteristic');
           })
-          .catch((error) => {
-              console.log('Notification start failed for tensometer:', error);
+          .catch(error => {
+            console.log('Notification start failed for tensometer:', error);
           });
-  
       })
-      .catch((error) => {
-          console.log('retrieveServices failed:', error);
+      .catch(error => {
+        console.log('retrieveServices failed:', error);
       });
   };
 
-
   const enableBluetoothInDevice = () => {
     BleManager.enableBluetooth()
-        .then(() => {
-            //** Start the scanning */
-            scanAndDiscoverDevices()
-        })
-        .catch((error) => {
-            console.log("rror-r---->", error);
-        });
-    }
+      .then(() => {
+        //** Start the scanning */
+        scanAndDiscoverDevices();
+      })
+      .catch(error => {
+        console.log('rror-r---->', error);
+      });
+  };
 
   const checkForBluetoothPermission = () => {
     if (Platform.OS === 'android' && Platform.Version >= 23) {
-        let finalPermission = Platform.Version >= 29
-            ? PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-            : PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
-        PermissionsAndroid.check(finalPermission).then((result) => {
+      let finalPermission =
+        Platform.Version >= 29
+          ? PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+          : PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
+      PermissionsAndroid.check(finalPermission).then(result => {
+        if (result) {
+          //* Enable the Bluetooth capability
+          enableBluetoothInDevice();
+        } else {
+          PermissionsAndroid.request(finalPermission).then(result => {
             if (result) {
-                //* Enable the Bluetooth capability
-                enableBluetoothInDevice()
+              //* Enable the Bluetooth capability
+              enableBluetoothInDevice();
             } else {
-                PermissionsAndroid.request(finalPermission).then((result) => {
-                    if (result) {
-                        //* Enable the Bluetooth capability
-                        enableBluetoothInDevice()
-                    } else {
-                        console.log("User refuse");
-                    }
-                });
+              console.log('User refuse');
             }
-        });
+          });
+        }
+      });
+    } else {
+      console.log('IOS');
+      enableBluetoothInDevice();
     }
-    else {
-        console.log("IOS");
-        enableBluetoothInDevice()
-    }
-}
+  };
 
   const scanAndDiscoverDevices = () => {
-    setDevices([]);  // clear previous devices
+    setDevices([]); // clear previous devices
     BleManager.scan([], 5, false).then(() => {
       console.log('Scanning...');
     });
   };
 
   const connectToDevice = (deviceID: string) => {
-    BleManager.connect(deviceID).then(() => {
-      console.log('Connected to ' + deviceID);
+    BleManager.connect(deviceID)
+      .then(() => {
+        console.log('Connected to ' + deviceID);
 
-      setCharacteristicNotification(deviceID);
-    }).catch((error) => {
-      console.log('Connection error', error);
-    });
+        setCharacteristicNotification(deviceID);
+      })
+      .catch(error => {
+        console.log('Connection error', error);
+      });
   };
 
   const handleConnectPress = () => {
@@ -152,7 +166,7 @@ const handleDiscoverPeripheral = (peripheral: { id: string; name: any; }) => {
     });
   };
 
-  const computeAccelerometerValue = (data: { value: Iterable<number>; }) => {
+  const computeAccelerometerValue = (data: {value: Iterable<number>}) => {
     const bytes = new Uint8Array(data.value);
 
     // Extract high and low bytes for each axis
@@ -164,20 +178,20 @@ const handleDiscoverPeripheral = (peripheral: { id: string; name: any; }) => {
     const azL = bytes[6];
 
     // Convert bytes to float values for each axis
-    const ax = (((axH * 256) + axL) / 32768.0) * 16;
-    const ay = (((ayH * 256) + ayL) / 32768.0) * 16;
-    const az = (((azH * 256) + azL) / 32768.0) * 16;
+    const ax = ((axH * 256 + axL) / 32768.0) * 16;
+    const ay = ((ayH * 256 + ayL) / 32768.0) * 16;
+    const az = ((azH * 256 + azL) / 32768.0) * 16;
 
     const sumAcc = Math.abs(ax + ay + az);
 
     return sumAcc;
-  }
+  };
 
   function uint8ArrayToString(data) {
     return String.fromCharCode.apply(null, data);
   }
 
-  const computeTensometerValue = (data: { value: Iterable<number>; }) => {
+  const computeTensometerValue = (data: {value: Iterable<number>}) => {
     const rawInput = uint8ArrayToString(new Uint8Array(data.value));
 
     const pattern = /(\d{4})(-?\d{1,3}\.\d{2})(-?\d{0,7})/;
@@ -186,37 +200,39 @@ const handleDiscoverPeripheral = (peripheral: { id: string; name: any; }) => {
     const matcher = rawInput.match(pattern);
     const matcher_force_only = rawInput.match(pattern_force_only);
     if (matcher || matcher_force_only) {
-        let n, force, temp = 0;
-        if (matcher) {
-            n = parseInt(matcher[1]);
-            temp = parseFloat(matcher[2]);
-            force = parseInt(matcher[3]);
-        } else {
-            n = parseInt(matcher_force_only[1]);
-            force = parseInt(matcher_force_only[2]);
-        }
+      let n,
+        force,
+        temp = 0;
+      if (matcher) {
+        n = parseInt(matcher[1]);
+        temp = parseFloat(matcher[2]);
+        force = parseInt(matcher[3]);
+      } else {
+        n = parseInt(matcher_force_only[1]);
+        force = parseInt(matcher_force_only[2]);
+      }
 
-        return { n, temp, force };
+      return {n, temp, force};
     } else {
-        console.warn("BLE", "Broken frame received: " + rawInput);
-        return {};
+      console.warn('BLE', 'Broken frame received: ' + rawInput);
+      return {};
     }
-};
+  };
 
-  const handleUpdateValueForCharacteristic = (data) => {
-    if (data.service == ACC_SERVICE_UUID) { 
+  const handleUpdateValueForCharacteristic = data => {
+    if (data.service == ACC_SERVICE_UUID) {
       const accelerometerValue = computeAccelerometerValue(data);
-        setAccelerometerData(prevData => [...prevData, { y: accelerometerValue }]);
+      setAccPoints(prevData => [...prevData, {y: accelerometerValue}]);
     } else if (data.service == TENS_SERVICE_UUID) {
       const tensometerData = computeTensometerValue(data);
       if (tensometerData && typeof tensometerData.force === 'number') {
-          setTensometerData(prevData => [...prevData, { y: tensometerData.force }]);
+        setTensPoints(prevData => [...prevData, {y: tensometerData.force}]);
       } else {
-        console.error("Failed to compute tensometer value.");
+        console.error('Failed to compute tensometer value.');
       }
     }
   };
-    
+
   const toggleItem = (value: string) => {
     setSelectedDevices(prevSelected => {
       if (prevSelected.includes(value)) {
@@ -241,24 +257,28 @@ const handleDiscoverPeripheral = (peripheral: { id: string; name: any; }) => {
       </TouchableOpacity>
       {open && (
         <ScrollView style={styles.list}>
-          {devices.filter(device => device.label).map(device => (
-            <TouchableOpacity
-              key={device.value}
-              onPress={() => toggleItem(device.value)}
-              style={styles.listItem}>
-              <Text
-                style={{
-                  color: selectedDevices.includes(device.value)
-                    ? 'green'
-                    : 'black',
-                }}>
-                {device.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-      </ScrollView>
+          {devices
+            .filter(device => device.label)
+            .map(device => (
+              <TouchableOpacity
+                key={device.value}
+                onPress={() => toggleItem(device.value)}
+                style={styles.listItem}>
+                <Text
+                  style={{
+                    color: selectedDevices.includes(device.value)
+                      ? 'green'
+                      : 'black',
+                  }}>
+                  {device.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+        </ScrollView>
       )}
-      <TouchableOpacity onPress={handleConnectPress} style={styles.connectButton}>
+      <TouchableOpacity
+        onPress={handleConnectPress}
+        style={styles.connectButton}>
         <Text style={styles.buttonText}>Connect</Text>
       </TouchableOpacity>
     </View>
