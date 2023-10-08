@@ -3,7 +3,9 @@ import {LineChart} from 'react-native-charts-wrapper';
 import React, { useState, useEffect } from 'react';
 import { useAccelerometerData} from '../hooks/useAccelerometerData'; 
 import { useTensometerData } from '../hooks/useTensometerData'; 
+import { useUserData } from '../hooks/useUserData';
 import { usePrediction } from '../components/NeuralNetworkModel';
+
 import RNFS from 'react-native-fs';
 
 
@@ -13,14 +15,13 @@ const MOVING_AVERAGE_WINDOW = 5;
 const TIME_INTERVAL = 50;
 const PRED_MARGIN = 0.8;
 
-function resetChart() {
-  
-}
 
 
 function ChartsScreen() {
   const { dataPointsTens, setTensometerData } = useTensometerData();
   const { dataPointsAcc,  setAccelerometerData} = useAccelerometerData();
+  const { seconds, setSeconds } = useUserData();
+  const { breathAmount, setBreathAmount } = useUserData();
   const [tensColors, setTensColors] = useState([
                                               processColor('red'), 
                                               processColor('red'), 
@@ -32,9 +33,51 @@ function ChartsScreen() {
   const [normalizedAccPoints, setNormalizedAccPoints] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
 
+  const [isActive, setIsActive] = useState(false);
+
+
+  const [wasBreathIn, setBreathInState] = useState(false);
+  const [wasBreathOut, setBreathOutState] = useState(false);
+
   function startChart() {
     setIsRunning(!isRunning);
+    setIsActive(!isActive);
   }
+
+  function resetChart() {
+    resetTimer();
+    setIsRunning(false);
+    setTensometerData([]);
+    setAccelerometerData([]);
+    setNormalizedAccPoints([]);
+    setNormalizedTensPoints([]);
+  }
+
+  const resetTimer = () => {
+    setSeconds(0);
+    setIsActive(false);
+  };
+
+  const formatTime = (timeInSeconds) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = timeInSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  useEffect(() => {
+    let interval;
+    if (isActive) {
+      interval = setInterval(() => {
+        setSeconds(prevSeconds => prevSeconds + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isActive]);
   
 
   useEffect(() => {
@@ -101,21 +144,31 @@ function ChartsScreen() {
   async function testPred() {
     const lastFivePoints = normalizedTensPoints.slice(-5);
     const prediction = await usePrediction(lastFivePoints);
-    const amplitude =  Math.max(...lastFivePoints.map((p: { y: any; }) => p.y)) - Math.min(...lastFivePoints.map((p: { y: any; }) => p.y));
     let newColor = processColor('green');
-    if (prediction && prediction[0] && amplitude > 0.03) {
+    if (prediction && prediction[0]) {
       if (prediction[0] > PRED_MARGIN) {
         newColor = processColor('red');
+        setBreathInState(true);
       } else if (prediction[0] < -PRED_MARGIN) {
         newColor = processColor('blue');
+        if(wasBreathIn){
+          setBreathOutState(true);
+        }
       }
     }
     setTensColors(prevColors => [...prevColors, newColor]);
+
+    if(wasBreathIn && wasBreathOut){
+      setBreathAmount(prevBreathsAmount => prevBreathsAmount + 1);
+      setBreathInState(false);
+      setBreathOutState(false);
+    }
   }
 
   async function startDemoVersion() {
     readFileAndUpdate();
     setIsRunning(true);
+    setIsActive(true);
   }
 
   async function readFileAndUpdate() {
@@ -147,24 +200,22 @@ function ChartsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Analizator Oddechu</Text>
-      </View>
-      
-      <View style={styles.buttons}>
+      <View style={styles.informationBox}>
+        <View style={styles.timerBox}>
+            <Text style={styles.timerText}>{formatTime(seconds)}</Text>
+        </View>
+        <View style={styles.buttons}>
+          <TouchableOpacity onPress={() => startDemoVersion()} style={styles.demoChartStyle}>
+            <Text style={styles.startChartButtonText}>TEST</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => startChart()} style={styles.startChartStyle}>
-          <Text style={styles.startChartButtonText}>START</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => startDemoVersion()} style={styles.startChartStyle}>
-          <Text style={styles.startChartButtonText}>TEST</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => resetChart()} style={styles.resetChartStyle}>
-          <Text style={styles.resetChartButtonText}>RESET</Text>
-        </TouchableOpacity>
-
+          <TouchableOpacity onPress={() => resetChart()} style={styles.resetChartStyle}>
+            <Text style={styles.resetChartButtonText}>RESET</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.breathsBox}>
+            <Text style={styles.breathsText}>{breathAmount}</Text>
+          </View>
       </View>
 
       <View style={styles.chart}>
@@ -196,6 +247,11 @@ function ChartsScreen() {
         }}
       />
       </View>
+      <View style={styles.startStopBox}>
+        <TouchableOpacity onPress={() => startChart()} style={isRunning ? styles.stopChartStyle :styles.startChartStyle}>
+          <Text style={styles.startChartButtonText}>{isRunning ? 'STOP' : 'START'}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -205,34 +261,53 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: '#FFF',
   },
-  header: {
-    height: "5%",
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF',
-  },
-  headerText: {
-    fontSize: 20,
-    color: '#000',
-  },
   chart: {
     height: "85%",
     backgroundColor: '#FFF',
     width: "95%",
     alignSelf: 'center',
   },
-  buttons: {
+  informationBox: {
+    marginTop: 5,
     flexDirection: 'row',
-    height: "10%",
+    height: "7.5%",
     backgroundColor: '#FFF',
     justifyContent: 'space-evenly',
+  },
+  breathsBox: {
+    flex: 2,
+  },
+  breathsText: {
+    fontSize: 40,
+    color: 'black',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+  timerBox: {
+    flex: 2,
+  },
+  timerText: {
+    fontSize: 40,
+    color: 'black',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+  buttons: {
+    flex: 3,
+    flexDirection: 'row',
     alignItems: 'center',
   },
+  startStopBox: {
+    height: "7.5%",
+    width: "90%",
+    alignSelf: 'center',
+    paddingBottom: 10,
+  },
   resetChartStyle: {
-    height: "75%",
+    flex: 2,
+    height: "100%",
     borderWidth: 1,
     borderColor: 'black',
-    backgroundColor: '#9455FC',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -240,11 +315,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     
   },
-  startChartStyle: {
-    height: "75%",
+  demoChartStyle: {
+    flex: 2,
+    height: "100%",
     borderWidth: 1,
     borderColor: 'black',
-    backgroundColor: '#FFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  startChartStyle: {
+    height: "100%",
+    borderWidth: 1,
+    borderColor: 'black',
+    backgroundColor: '#1fd655',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  stopChartStyle: {
+    height: "100%",
+    borderWidth: 1,
+    borderColor: 'black',
+    backgroundColor: '#FF474C',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

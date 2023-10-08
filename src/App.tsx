@@ -7,6 +7,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import AccelerometerDataContext from './contexts/AccelerometerDataContext';
 import TensometerDataContext from './contexts/TensometerDataContext';
+import UserDataContext from './contexts/UserDataContext';
 
 
 const Tab = createMaterialTopTabNavigator();
@@ -14,6 +15,10 @@ const Tab = createMaterialTopTabNavigator();
 const App = () => {
   const [dataPointsAcc, setAccelerometerData] = useState<Array<{ y: number }>>([]);
   const [dataPointsTens, setTensometerData] = useState<Array<{ y: number }>>([]);
+  const [seconds, setSeconds] = useState(0);
+  const [breathAmount, setBreathAmount] = useState(0);
+
+
 
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -25,6 +30,10 @@ const App = () => {
     <SafeAreaView style={styles.container}>
       <TensometerDataContext.Provider value={{ dataPointsTens, setTensometerData }}>
       <AccelerometerDataContext.Provider value={{ dataPointsAcc, setAccelerometerData }}>
+        <UserDataContext.Provider value = {
+          {seconds, setSeconds,
+            breathAmount, setBreathAmount
+        }}>
         <NavigationContainer>
          <Tab.Navigator>
           <Tab.Screen name="Connection" component={ConnectScreen} />
@@ -32,6 +41,7 @@ const App = () => {
           <Tab.Screen name="Statistics" component={StatisticScreen} />
         </Tab.Navigator>
         </NavigationContainer>
+        </UserDataContext.Provider>
       </AccelerometerDataContext.Provider>
       </TensometerDataContext.Provider>
     </SafeAreaView>
