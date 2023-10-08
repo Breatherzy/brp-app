@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "stop": "taskkill /F /IM java.exe && taskkill /F /IM adb.exe"
+    "stop": "taskkill /F /IM java.exe & taskkill /F /IM adb.exe & taskkill /F /IM node.exe"
   },
   "dependencies": {
     "@react-navigation/material-top-tabs": "^6.6.3",

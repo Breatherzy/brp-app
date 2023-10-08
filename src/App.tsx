@@ -8,12 +8,11 @@ import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs
 import AccelerometerDataContext from './contexts/AccelerometerDataContext';
 import TensometerDataContext from './contexts/TensometerDataContext';
 
-
 const Tab = createMaterialTopTabNavigator();
 
 const App = () => {
-  const [dataPointsAcc, setAccelerometerData] = useState<Array<{ y: number }>>([]);
-  const [dataPointsTens, setTensometerData] = useState<Array<{ y: number }>>([]);
+  const [accPoints, setAccPoints] = useState<Array<{y: number}>>([]);
+  const [tensPoints, setTensPoints] = useState<Array<{y: number}>>([]);
 
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -23,19 +22,18 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TensometerDataContext.Provider value={{ dataPointsTens, setTensometerData }}>
-      <AccelerometerDataContext.Provider value={{ dataPointsAcc, setAccelerometerData }}>
-        <NavigationContainer>
-         <Tab.Navigator>
-          <Tab.Screen name="Connection" component={ConnectScreen} />
-          <Tab.Screen name="Charts" component={ChartsScreen} />
-          <Tab.Screen name="Statistics" component={StatisticScreen} />
-        </Tab.Navigator>
-        </NavigationContainer>
-      </AccelerometerDataContext.Provider>
+      <TensometerDataContext.Provider value={{tensPoints, setTensPoints}}>
+        <AccelerometerDataContext.Provider value={{accPoints, setAccPoints}}>
+          <NavigationContainer>
+            <Tab.Navigator>
+              <Tab.Screen name="Connection" component={ConnectScreen} />
+              <Tab.Screen name="Charts" component={ChartsScreen} />
+              <Tab.Screen name="Statistics" component={StatisticScreen} />
+            </Tab.Navigator>
+          </NavigationContainer>
+        </AccelerometerDataContext.Provider>
       </TensometerDataContext.Provider>
     </SafeAreaView>
-
   );
 };
 
