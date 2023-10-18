@@ -167,7 +167,7 @@ const ConnectScreen = () => {
   };
 
   const computeAccelerometerValue = (data: {value: Iterable<number>}) => {
-    const bytes = new Uint8Array(data.value);
+    const bytes = new Int8Array(data.value);
 
     // Extract high and low bytes for each axis
     const axH = bytes[3];
