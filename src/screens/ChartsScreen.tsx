@@ -18,7 +18,7 @@ import RNFS from 'react-native-fs';
 const RANGE = 300;
 const CHART_WINDOW = 150;
 const MOVING_AVERAGE_WINDOW = 5;
-const TIME_INTERVAL = 50;
+const TIME_INTERVAL = 25;
 const PRED_MARGIN = 0.8;
 
 function ChartsScreen() {
@@ -33,8 +33,10 @@ function ChartsScreen() {
     processColor('red'),
     processColor('red'),
   ]);
+
   const [normalizedAccPoints, setNormalizedAccPoints] = useState<any[]>([]);
   const [normalizedTensPoints, setNormalizedTensPoints] = useState<any[]>([]);
+  const [tensPointToDisplay, setTensPointToDisplay] = useState<any[]>([]);
   const isRunning = useRef(false);
   const reset = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -64,6 +66,7 @@ function ChartsScreen() {
       processColor('red'),
       processColor('red'),
     ]);
+    setTensPointToDisplay([]);
   }
 
   const formatTime = timeInSeconds => {
@@ -132,27 +135,28 @@ function ChartsScreen() {
   }, [isActive]);
 
   useEffect(() => {
-    if (tensPoints.length >= RANGE) {
-      setTensPoints(prev => prev.slice(-RANGE + 1));
+    if (isRunning.current) {
+      if (tensPoints.length >= RANGE) {
+        tensPoints.shift();
+      }
+
+      if (accPoints.length >= RANGE) {
+        accPoints.shift();
+      }
+
+      console.log(accPoints)
+
+      const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
+      setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
+
+      const smoothedTensPoints = movingAverage(tensPoints.slice(-CHART_WINDOW));
+      setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
+
+      if (normalizedTensPoints.length > MOVING_AVERAGE_WINDOW) {
+        predictData();
+      }
     }
 
-    if (accPoints.length >= RANGE) {
-      setAccPoints(prev => prev.slice(-RANGE + 1));
-    }
-
-    const smoothedTensPoints = movingAverage(tensPoints.slice(-CHART_WINDOW));
-    setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
-
-    if (normalizedTensPoints.length > MOVING_AVERAGE_WINDOW) {
-      predictData();
-    }
-
-    const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
-    setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
-
-    if (tensColors.length >= RANGE) {
-      setTensColors(tensColors.slice(-RANGE + 1));
-    }
   }, [accPoints, tensPoints]);
 
   async function predictData() {
@@ -170,7 +174,14 @@ function ChartsScreen() {
         }
       }
     }
-    setTensColors(prevColors => [...prevColors, newColor]);
+
+    if (tensColors.length >= RANGE) {
+      tensColors.shift();
+    }
+
+    setTensPointToDisplay(normalizedTensPoints)
+    tensColors.push(newColor);
+    console.log(normalizedTensPoints.length, tensColors.length, tensColors.slice(-CHART_WINDOW).length)
 
     if (wasBreathIn && wasBreathOut) {
       setBreathAmount(prevBreathsAmount => prevBreathsAmount + 1);
@@ -210,7 +221,7 @@ function ChartsScreen() {
       y: isNaN(point.y) ? defaultValue : point.y,
     }));
   }
-
+  
   return (
     <View style={styles.container}>
       <View style={styles.informationBox}>
@@ -251,13 +262,14 @@ function ChartsScreen() {
                   color: processColor('red'),
                   drawCircles: false,
                   lineWidth: 3,
+                  drawValues: false,
                 },
               },
               {
-                values: normalizedTensPoints,
+                values: tensPointToDisplay,
                 label: 'Tens',
                 config: {
-                  colors: tensColors.slice(-CHART_WINDOW + 1),
+                  colors: tensColors.slice(-CHART_WINDOW+1),
                   drawCircles: false,
                   lineWidth: 3,
                   drawValues: false,
