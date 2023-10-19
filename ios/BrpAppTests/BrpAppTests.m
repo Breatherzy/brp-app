@@ -7,11 +7,11 @@
 #define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"Welcome to React"
 
-@interface breath_research_projectTests : XCTestCase
+@interface BrpAppTests : XCTestCase
 
 @end
 
-@implementation breath_research_projectTests
+@implementation BrpAppTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL (^)(UIView *view))test
 {

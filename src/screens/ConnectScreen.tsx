@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   NativeEventEmitter,
   Platform,
   PermissionsAndroid,
+  Alert,
+  BackHandler,
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
 import {useAccelerometerData} from '../hooks/useAccelerometerData';
@@ -25,7 +27,6 @@ const ConnectScreen = () => {
     [],
   );
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
-  const [open, setOpen] = useState(false);
 
   const ACC_SERVICE_UUID = '0000ffe5-0000-1000-8000-00805f9a34fb';
   const ACC_CHARACTERISTIC_UUID = '0000ffe4-0000-1000-8000-00805f9a34fb';
@@ -109,33 +110,55 @@ const ConnectScreen = () => {
         scanAndDiscoverDevices();
       })
       .catch(error => {
-        console.log('rror-r---->', error);
+        console.log('enableBluetoothInDevice error: ', error);
+        Alert.alert(
+          'Bluetooth error',
+          `${error}. Please enable Bluetooth in your device settings.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => BackHandler.exitApp(),
+            },
+          ],
+        );
       });
   };
 
   const checkForBluetoothPermission = () => {
-    if (Platform.OS === 'android' && Platform.Version >= 23) {
-      let finalPermission =
-        Platform.Version >= 29
-          ? PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-          : PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION;
-      PermissionsAndroid.check(finalPermission).then(result => {
-        if (result) {
-          //* Enable the Bluetooth capability
+    console.log('Platform version: ', Platform.Version);
+    if (Platform.OS === 'android') {
+      PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+      ]).then(result => {
+        console.log('Permission result: ', result);
+        if (
+          result['android.permission.ACCESS_FINE_LOCATION'] &&
+          result['android.permission.ACCESS_COARSE_LOCATION'] === 'granted' &&
+          (result['android.permission.BLUETOOTH_SCAN'] === 'granted' ||
+            Platform.Version <= 30)
+        ) {
+          console.log('You can use the Bluetooth');
+          //* Enable the Bluetooth capability and start scanning
           enableBluetoothInDevice();
         } else {
-          PermissionsAndroid.request(finalPermission).then(result => {
-            if (result) {
-              //* Enable the Bluetooth capability
-              enableBluetoothInDevice();
-            } else {
-              console.log('User refuse');
-            }
-          });
+          console.log('Permissions denied');
+          Alert.alert(
+            'Permissions denied',
+            'You need to grant location and bluetooth permissions to use this app.',
+            [
+              {
+                text: 'OK',
+                onPress: () => BackHandler.exitApp(),
+              },
+            ],
+          );
         }
       });
     } else {
       console.log('IOS');
+      //* For iOS, enable Bluetooth capability and start scanning
       enableBluetoothInDevice();
     }
   };
@@ -249,33 +272,34 @@ const ConnectScreen = () => {
         activeOpacity={0.6}
         onPress={scanAndDiscoverDevices}
         style={styles.scanButton}>
-        <Text>Scan for Devices</Text>
+        <Text style={styles.text}>Scan for Devices</Text>
       </TouchableOpacity>
       <Text style={styles.header}>Select Bluetooth Devices</Text>
-      <TouchableOpacity onPress={() => setOpen(!open)} style={styles.dropdown}>
-        <Text>{selectedDevices.length} devices selected</Text>
+      <TouchableOpacity style={styles.dropdown}>
+        <Text style={styles.text}>
+          {selectedDevices.length} devices selected
+        </Text>
       </TouchableOpacity>
-      {open && (
-        <ScrollView style={styles.list}>
-          {devices
-            .filter(device => device.label)
-            .map(device => (
-              <TouchableOpacity
-                key={device.value}
-                onPress={() => toggleItem(device.value)}
-                style={styles.listItem}>
-                <Text
-                  style={{
-                    color: selectedDevices.includes(device.value)
-                      ? 'green'
-                      : 'black',
-                  }}>
-                  {device.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-        </ScrollView>
-      )}
+      <Text style={styles.warn}>Location and Bluetooth must be enabled</Text>
+      <ScrollView style={styles.list}>
+        {devices
+          .filter(device => device.label)
+          .map(device => (
+            <TouchableOpacity
+              key={device.value}
+              onPress={() => toggleItem(device.value)}
+              style={styles.listItem}>
+              <Text
+                style={{
+                  color: selectedDevices.includes(device.value)
+                    ? 'green'
+                    : 'black',
+                }}>
+                {device.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+      </ScrollView>
       <TouchableOpacity
         onPress={handleConnectPress}
         style={styles.connectButton}>
@@ -297,6 +321,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'white',
     marginBottom: 10,
+  },
+  warn: {
+    fontSize: 12,
+    color: 'red',
+    marginBottom: 10,
+  },
+  text: {
+    color: 'gray',
   },
   dropdown: {
     backgroundColor: 'white',

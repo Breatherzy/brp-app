@@ -144,8 +144,6 @@ function ChartsScreen() {
         accPoints.shift();
       }
 
-      console.log(accPoints)
-
       const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
       setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
 
@@ -156,7 +154,6 @@ function ChartsScreen() {
         predictData();
       }
     }
-
   }, [accPoints, tensPoints]);
 
   async function predictData() {
@@ -179,9 +176,8 @@ function ChartsScreen() {
       tensColors.shift();
     }
 
-    setTensPointToDisplay(normalizedTensPoints)
+    setTensPointToDisplay(normalizedTensPoints);
     tensColors.push(newColor);
-    console.log(normalizedTensPoints.length, tensColors.length, tensColors.slice(-CHART_WINDOW).length)
 
     if (wasBreathIn && wasBreathOut) {
       setBreathAmount(prevBreathsAmount => prevBreathsAmount + 1);
@@ -221,7 +217,7 @@ function ChartsScreen() {
       y: isNaN(point.y) ? defaultValue : point.y,
     }));
   }
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.informationBox}>
@@ -269,7 +265,7 @@ function ChartsScreen() {
                 values: tensPointToDisplay,
                 label: 'Tens',
                 config: {
-                  colors: tensColors.slice(-CHART_WINDOW+1),
+                  colors: tensColors.slice(-CHART_WINDOW + 1),
                   drawCircles: false,
                   lineWidth: 3,
                   drawValues: false,

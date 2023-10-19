@@ -1,4 +1,4 @@
-package com.breath_research_project;
+package com.brpapp;
 
 import android.app.Application;
 import com.facebook.react.PackageList;
@@ -7,13 +7,12 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
-import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
 import com.rnfs.RNFSPackage;
-
-import java.util.Arrays;
 import java.util.List;
-import com.breath_research_project.BRPAppPackage;
+
+import com.brpapp.BRPAppPackage;
+
 public class MainApplication extends Application implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost =
@@ -65,5 +64,4 @@ public class MainApplication extends Application implements ReactApplication {
     }
     ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
   }
-
 }

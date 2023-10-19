@@ -1,4 +1,4 @@
-package com.breath_research_project;
+package com.brpapp;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
