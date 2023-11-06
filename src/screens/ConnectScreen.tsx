@@ -119,9 +119,9 @@ const ConnectScreen = () => {
   const handleUpdateValueForCharacteristic = (
     data: BleManagerDidUpdateValueForCharacteristicEvent
   ) => {
-    console.debug(
-      `[handleUpdateValueForCharacteristic] received data from '${data.peripheral}' with characteristic='${data.characteristic}' and value='${data.value}'`
-    );
+    // console.debug(
+    //   `[handleUpdateValueForCharacteristic] received data from '${data.peripheral}' with characteristic='${data.characteristic}' and value='${data.value}'`
+    // );
     if (data.service == ACC_SERVICE_UUID) {
       const accelerometerValue = computeAccelerometerValue(data);
       setAccPoints((prevData) => [...prevData, { y: accelerometerValue }]);
@@ -190,10 +190,10 @@ const ConnectScreen = () => {
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
     if (peripheral.name) {
-      console.debug(
-        "[handleDiscoverPeripheral] new BLE peripheral=",
-        peripheral
-      );
+      // console.debug(
+      //   "[handleDiscoverPeripheral] new BLE peripheral=",
+      //   peripheral
+      // );
       addOrUpdatePeripheral(peripheral.id, peripheral);
     }
   };
@@ -263,41 +263,44 @@ const ConnectScreen = () => {
 
         /* Test read current RSSI value, retrieve services first */
         const peripheralData = await BleManager.retrieveServices(peripheral.id);
-        console.debug(
-          `[connectPeripheral][${peripheral.id}] retrieved peripheral services`,
-          peripheralData
-        );
+        // console.debug(
+        //   `[connectPeripheral][${peripheral.id}] retrieved peripheral services`,
+        //   peripheralData
+        // );
 
-        const rssi = await BleManager.readRSSI(peripheral.id);
-        console.debug(
-          `[connectPeripheral][${peripheral.id}] retrieved current RSSI value: ${rssi}.`
-        );
+        BleManager.startNotification(
+          peripheral.id,
+          ACC_SERVICE_UUID,
+          ACC_CHARACTERISTIC_UUID
+        )
+          .then(() => {
+            console.debug(
+              `[connectPeripheral][${peripheral.id}] started notification on accelerometer characteristic.`
+            );
+          })
+          .catch((error) => {
+            console.error(
+              `[connectPeripheral][${peripheral.id}] start notification error`,
+              error
+            );
+          });
 
-        if (peripheralData.characteristics) {
-          for (let characteristic of peripheralData.characteristics) {
-            if (characteristic.descriptors) {
-              for (let descriptor of characteristic.descriptors) {
-                try {
-                  let data = await BleManager.readDescriptor(
-                    peripheral.id,
-                    characteristic.service,
-                    characteristic.characteristic,
-                    descriptor.uuid
-                  );
-                  console.debug(
-                    `[connectPeripheral][${peripheral.id}] descriptor read as:`,
-                    data
-                  );
-                } catch (error) {
-                  console.error(
-                    `[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`,
-                    error
-                  );
-                }
-              }
-            }
-          }
-        }
+        BleManager.startNotification(
+          peripheral.id,
+          TENS_SERVICE_UUID,
+          TENS_CHARACTERISTIC_UUID
+        )
+          .then(() => {
+            console.debug(
+              `[connectPeripheral][${peripheral.id}] started notification on tensometer characteristic.`
+            );
+          })
+          .catch((error) => {
+            console.error(
+              `[connectPeripheral][${peripheral.id}] start notification error`,
+              error
+            );
+          });
       }
     } catch (error) {
       console.error(
