@@ -15,6 +15,7 @@ import {
 } from "react-native";
 
 import { Colors } from "react-native/Libraries/NewAppScreen";
+import { promptForEnableLocationIfNeeded } from "react-native-android-location-enabler";
 
 const SECONDS_TO_SCAN_FOR = 3;
 const ACC_SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
@@ -22,7 +23,7 @@ const ACC_CHARACTERISTIC_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
 const TENS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const TENS_CHARACTERISTIC_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 const SERVICE_UUIDS: string[] = [];
-const ALLOW_DUPLICATES = true;
+const ALLOW_DUPLICATES = false;
 
 import BleManager, {
   BleDisconnectPeripheralEvent,
@@ -54,7 +55,7 @@ const ConnectScreen = () => {
     new Map<Peripheral["id"], Peripheral>()
   );
 
-  console.debug("peripherals map updated", [...peripherals.entries()]);
+  //console.debug("peripherals map updated", [...peripherals.entries()]);
 
   const addOrUpdatePeripheral = (id: string, updatedPeripheral: Peripheral) => {
     // new Map() enables changing the reference & refreshing UI.
@@ -66,6 +67,7 @@ const ConnectScreen = () => {
     if (!isScanning) {
       // reset found peripherals before scan
       setPeripherals(new Map<Peripheral["id"], Peripheral>());
+      retrieveConnected();
 
       try {
         console.debug("[startScan] starting scan...");
@@ -95,17 +97,23 @@ const ConnectScreen = () => {
   const handleDisconnectedPeripheral = (
     event: BleDisconnectPeripheralEvent
   ) => {
-    let peripheral = peripherals.get(event.peripheral);
-    if (peripheral) {
+    setPeripherals((peripherals) => {
+      const peripheral = peripherals.get(event.peripheral);
+      if (peripheral) {
+        console.debug(
+          `[handleDisconnectedPeripheral][${peripheral.id}] previously connected peripheral is disconnected.`,
+          event.peripheral
+        );
+        addOrUpdatePeripheral(peripheral.id, {
+          ...peripheral,
+          connected: false,
+        });
+      }
       console.debug(
-        `[handleDisconnectedPeripheral][${peripheral.id}] previously connected peripheral is disconnected.`,
-        event.peripheral
+        `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`
       );
-      addOrUpdatePeripheral(peripheral.id, { ...peripheral, connected: false });
-    }
-    console.debug(
-      `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`
-    );
+      return peripherals;
+    });
   };
 
   const handleUpdateValueForCharacteristic = (
@@ -181,11 +189,13 @@ const ConnectScreen = () => {
   };
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-    console.debug("[handleDiscoverPeripheral] new BLE peripheral=", peripheral);
-    if (!peripheral.name) {
-      peripheral.name = "NO NAME";
+    if (peripheral.name) {
+      console.debug(
+        "[handleDiscoverPeripheral] new BLE peripheral=",
+        peripheral
+      );
+      addOrUpdatePeripheral(peripheral.id, peripheral);
     }
-    addOrUpdatePeripheral(peripheral.id, peripheral);
   };
 
   const togglePeripheralConnection = async (peripheral: Peripheral) => {
@@ -288,11 +298,6 @@ const ConnectScreen = () => {
             }
           }
         }
-
-        let p = peripherals.get(peripheral.id);
-        if (p) {
-          addOrUpdatePeripheral(peripheral.id, { ...peripheral, rssi });
-        }
       }
     } catch (error) {
       console.error(
@@ -308,7 +313,7 @@ const ConnectScreen = () => {
 
   useEffect(() => {
     try {
-      BleManager.start({ showAlert: false })
+      BleManager.start({ showAlert: false, forceLegacy: true })
         .then(() => console.debug("BleManager started."))
         .catch((error) =>
           console.error("BeManager could not be started.", error)
@@ -385,6 +390,30 @@ const ConnectScreen = () => {
           });
         }
       });
+      promptForEnableLocationIfNeeded()
+        .then((result) => {
+          console.debug(
+            "[handleAndroidPermissions] promptForEnableLocationIfNeeded result",
+            result
+          );
+        })
+        .catch((error) => {
+          console.error(
+            "[handleAndroidPermissions] promptForEnableLocationIfNeeded error",
+            error
+          );
+        });
+    }
+    if (Platform.OS === "android") {
+      BleManager.enableBluetooth()
+        .then(() => {
+          // Success code
+          console.log("The bluetooth is already enabled or the user confirm");
+        })
+        .catch((error) => {
+          // Failure code
+          console.log("The user refuse to enable bluetooth");
+        });
     }
   };
 
@@ -398,10 +427,10 @@ const ConnectScreen = () => {
         <View style={[styles.row, { backgroundColor }]}>
           <Text style={styles.peripheralName}>
             {/* completeLocalName (item.name) & shortAdvertisingName (advertising.localName) may not always be the same */}
-            {item.name} - {item?.advertising?.localName}
+            {item.name}
             {item.connecting && " - Connecting..."}
           </Text>
-          <Text style={styles.rssi}>RSSI: {item.rssi}</Text>
+          {/* <Text style={styles.rssi}>RSSI: {item.rssi}</Text> */}
           <Text style={styles.peripheralId}>{item.id}</Text>
         </View>
       </TouchableHighlight>
@@ -415,12 +444,6 @@ const ConnectScreen = () => {
         <Pressable style={styles.scanButton} onPress={startScan}>
           <Text style={styles.scanButtonText}>
             {isScanning ? "Scanning..." : "Scan Bluetooth"}
-          </Text>
-        </Pressable>
-
-        <Pressable style={styles.scanButton} onPress={retrieveConnected}>
-          <Text style={styles.scanButtonText}>
-            {"Retrieve connected peripherals"}
           </Text>
         </Pressable>
 
