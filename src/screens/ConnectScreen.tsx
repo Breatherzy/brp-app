@@ -267,40 +267,31 @@ const ConnectScreen = () => {
         //   `[connectPeripheral][${peripheral.id}] retrieved peripheral services`,
         //   peripheralData
         // );
-
-        BleManager.startNotification(
-          peripheral.id,
-          ACC_SERVICE_UUID,
-          ACC_CHARACTERISTIC_UUID
-        )
-          .then(() => {
-            console.debug(
-              `[connectPeripheral][${peripheral.id}] started notification on accelerometer characteristic.`
-            );
-          })
-          .catch((error) => {
-            console.error(
-              `[connectPeripheral][${peripheral.id}] start notification error`,
-              error
-            );
-          });
-
-        BleManager.startNotification(
-          peripheral.id,
-          TENS_SERVICE_UUID,
-          TENS_CHARACTERISTIC_UUID
-        )
-          .then(() => {
-            console.debug(
-              `[connectPeripheral][${peripheral.id}] started notification on tensometer characteristic.`
-            );
-          })
-          .catch((error) => {
-            console.error(
-              `[connectPeripheral][${peripheral.id}] start notification error`,
-              error
-            );
-          });
+        if (peripheralData.characteristics) {
+          for (const characteristic of peripheralData.characteristics) {
+            if (characteristic.service === ACC_SERVICE_UUID) {
+              await BleManager.startNotification(
+                peripheral.id,
+                ACC_SERVICE_UUID,
+                ACC_CHARACTERISTIC_UUID
+              );
+              console.debug(
+                `[connectPeripheral][${peripheral.id}] start accelerometer notification`
+              );
+              break;
+            } else if (characteristic.service === TENS_SERVICE_UUID) {
+              await BleManager.startNotification(
+                peripheral.id,
+                TENS_SERVICE_UUID,
+                TENS_CHARACTERISTIC_UUID
+              );
+              console.debug(
+                `[connectPeripheral][${peripheral.id}] start tensometer notification`
+              );
+              break;
+            }
+          }
+        }
       }
     } catch (error) {
       console.error(
@@ -353,22 +344,20 @@ const ConnectScreen = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAndroidPermissions = () => {
+  const handleAndroidPermissions = async () => {
     if (Platform.OS === "android" && Platform.Version >= 31) {
-      PermissionsAndroid.requestMultiple([
+      let result = await PermissionsAndroid.requestMultiple([
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-      ]).then((result) => {
-        if (result) {
-          console.debug(
-            "[handleAndroidPermissions] User accepts runtime permissions android 12+"
-          );
-        } else {
-          console.error(
-            "[handleAndroidPermissions] User refuses runtime permissions android 12+"
-          );
-        }
-      });
+      ]);
+      if (result)
+        console.debug(
+          "[handleAndroidPermissions] User accepts runtime permission android >=12"
+        );
+      else
+        console.error(
+          "[handleAndroidPermissions] User refuses runtime permission android >=12"
+        );
     } else if (Platform.OS === "android" && Platform.Version >= 23) {
       PermissionsAndroid.check(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
