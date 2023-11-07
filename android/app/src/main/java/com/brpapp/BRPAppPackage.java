@@ -1,4 +1,4 @@
-package com.breath_research_project;
+package com.brpapp;
 import androidx.annotation.NonNull;
 
 import com.facebook.react.ReactPackage;
