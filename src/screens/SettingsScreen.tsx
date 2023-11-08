@@ -55,14 +55,20 @@ const SettingsScreen = ({ setPredMargin, setMovingAverage, setStatusBar }) => {
 
       <Pressable
         onPress={() => handleModelSelection("StateModel", 5)}
-        style={styles.Button}
+        style={[
+          styles.Button,
+          modelName === "StateModel" && { backgroundColor: "#069400" },
+        ]}
       >
         <Text style={styles.ButtonText}>State Model</Text>
       </Pressable>
 
       <Pressable
         onPress={() => handleModelSelection("MonoModel", 10)}
-        style={styles.Button}
+        style={[
+          styles.Button,
+          modelName === "MonoModel" && { backgroundColor: "#069400" },
+        ]}
       >
         <Text style={styles.ButtonText}>Mono Model</Text>
       </Pressable>
