@@ -1,10 +1,10 @@
-import {View, Text, StyleSheet} from 'react-native';
-import React from 'react';
-import {useUserData} from '../hooks/useUserData';
+import { View, Text, StyleSheet } from "react-native";
+import React from "react";
+import { useUserData } from "../hooks/useUserData";
 
 function StatisticScreen() {
-  const {seconds, setSeconds} = useUserData();
-  const {breathAmount, setBreathAmount} = useUserData();
+  const { seconds, setSeconds } = useUserData();
+  const { breathAmount, setBreathAmount } = useUserData();
 
   const averageBreathAmount = (breathAmount * 60) / seconds;
   return (
@@ -30,61 +30,61 @@ function StatisticScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#0082FC',
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#0082FC",
     padding: 6,
   },
   header: {
-    justifyContent: 'center',
-    width: '100%',
-    height: '10%',
+    justifyContent: "center",
+    width: "100%",
+    height: "10%",
   },
   headerText: {
     fontSize: 36,
-    color: 'white',
-    alignSelf: 'center',
+    color: "white",
+    alignSelf: "center",
   },
   informations: {
-    height: '90%',
-    flexDirection: 'row',
+    height: "90%",
+    flexDirection: "row",
   },
   textsBox: {
-    width: '50%',
+    width: "50%",
     height: 200,
   },
   breathCounterText: {
     fontSize: 30,
     marginLeft: 30,
-    textAlign: 'left',
-    color: 'black',
-    justifyContent: 'center',
+    textAlign: "left",
+    color: "black",
+    justifyContent: "center",
   },
   averageBreaths: {
     marginTop: 20,
     marginLeft: 30,
-    textAlign: 'left',
+    textAlign: "left",
     fontSize: 30,
-    color: 'black',
-    justifyContent: 'center',
+    color: "black",
+    justifyContent: "center",
   },
   numbersBox: {
-    width: '50%',
+    width: "50%",
     height: 200,
   },
   breathCounter: {
     marginTop: 15,
     fontSize: 40,
-    color: 'black',
-    justifyContent: 'center',
-    alignSelf: 'center',
+    color: "black",
+    justifyContent: "center",
+    alignSelf: "center",
   },
   averageBreathAmount: {
     marginTop: 55,
     fontSize: 40,
-    color: 'black',
-    justifyContent: 'center',
-    alignSelf: 'center',
+    color: "black",
+    justifyContent: "center",
+    alignSelf: "center",
   },
 });
 export default StatisticScreen;

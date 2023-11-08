@@ -5,25 +5,25 @@ import {
   TouchableOpacity,
   processColor,
   Platform,
-} from 'react-native';
-import {LineChart} from 'react-native-charts-wrapper';
-import React, {useState, useEffect, useRef} from 'react';
-import {useAccelerometerData} from '../hooks/useAccelerometerData';
-import {useTensometerData} from '../hooks/useTensometerData';
-import {useUserData} from '../hooks/useUserData';
-import {usePrediction} from '../components/NeuralNetworkModel';
+} from "react-native";
+import { LineChart } from "react-native-charts-wrapper";
+import React, { useState, useEffect, useRef } from "react";
+import { useAccelerometerData } from "../hooks/useAccelerometerData";
+import { useTensometerData } from "../hooks/useTensometerData";
+import { useUserData } from "../hooks/useUserData";
+import { usePrediction } from "../components/NeuralNetworkModel";
 
-import RNFS from 'react-native-fs';
+import RNFS from "react-native-fs";
 
 const RANGE = 300;
 const CHART_WINDOW = 150;
 const TIME_INTERVAL = 25;
 
 function ChartsScreen({ predMargin, movingAverageWindow }) {
-  const {accPoints, setAccPoints} = useAccelerometerData();
-  const {seconds, setSeconds} = useUserData();
-  const {breathAmount, setBreathAmount} = useUserData();
-  const {tensPoints, setTensPoints} = useTensometerData();
+  const { accPoints, setAccPoints } = useAccelerometerData();
+  const { seconds, setSeconds } = useUserData();
+  const { breathAmount, setBreathAmount } = useUserData();
+  const { tensPoints, setTensPoints } = useTensometerData();
   const [tensColors, setTensColors] = useState([]);
 
   const [normalizedAccPoints, setNormalizedAccPoints] = useState<any[]>([]);
@@ -55,53 +55,55 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
     setTensPointToDisplay([]);
   }
 
-  const formatTime = timeInSeconds => {
+  const formatTime = (timeInSeconds) => {
     const minutes = Math.floor(timeInSeconds / 60);
     const seconds = timeInSeconds % 60;
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
   async function readDemoData() {
     try {
       let content;
       setIsPlaying(true);
-      if (Platform.OS === 'ios') {
+      if (Platform.OS === "ios") {
         const filePath = `${RNFS.MainBundlePath}/debug3.txt`;
-        content = await RNFS.readFile(filePath, 'utf8');
-      } else if (Platform.OS === 'android') {
-        const assetPath = 'debug3.txt';
-        content = await RNFS.readFileAssets(assetPath, 'utf8');
+        content = await RNFS.readFile(filePath, "utf8");
+      } else if (Platform.OS === "android") {
+        const assetPath = "debug3.txt";
+        content = await RNFS.readFileAssets(assetPath, "utf8");
       }
       isRunning.current = true;
       reset.current = false;
       setIsActive(isRunning.current);
-      const lines = content.split('\n');
+      const lines = content.split("\n");
       for (let line of lines) {
         while (!isRunning.current) {
-          await new Promise<void>(resolve => setTimeout(resolve, 500));
-          console.log('waiting');
+          await new Promise<void>((resolve) => setTimeout(resolve, 500));
+          console.log("waiting");
           if (reset.current) {
-            console.log('reset while waiting');
+            console.log("reset while waiting");
             break;
           }
         }
         if (reset.current) {
-          console.log('reset while reading');
+          console.log("reset while reading");
           reset.current = false;
           break;
         }
-        await new Promise<void>(resolve => setTimeout(resolve, TIME_INTERVAL));
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, TIME_INTERVAL)
+        );
         const match = line.match(/Punkt y:(\d+\.\d+)/);
         if (match && match[1]) {
           let yValue = parseFloat(match[1]);
-          setTensPoints(tensPoints => [...tensPoints, {y: yValue}]);
+          setTensPoints((tensPoints) => [...tensPoints, { y: yValue }]);
         }
       }
       isRunning.current = false;
       setIsActive(isRunning.current);
       setIsPlaying(false);
     } catch (error) {
-      console.error('Failed to read from file', error);
+      console.error("Failed to read from file", error);
     }
   }
 
@@ -109,7 +111,7 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
     let interval;
     if (isActive) {
       interval = setInterval(() => {
-        setSeconds(prevSeconds => prevSeconds + 1);
+        setSeconds((prevSeconds) => prevSeconds + 1);
       }, 1000);
     } else {
       clearInterval(interval);
@@ -138,8 +140,8 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
 
       if (normalizedTensPoints.length > movingAverageWindow) {
         predictData();
-      }else{
-        setTensColors(tensColors => [...tensColors, processColor('red')]);
+      } else {
+        setTensColors((tensColors) => [...tensColors, processColor("red")]);
       }
     }
   }, [accPoints, tensPoints]);
@@ -147,13 +149,13 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
   async function predictData() {
     const lastFivePoints = normalizedTensPoints.slice(-movingAverageWindow);
     const prediction = await usePrediction(lastFivePoints);
-    let newColor = processColor('green');
+    let newColor = processColor("green");
     if (prediction && prediction[0]) {
       if (prediction[0] > predMargin) {
-        newColor = processColor('red');
+        newColor = processColor("red");
         setBreathInState(true);
       } else if (prediction[0] < -predMargin) {
-        newColor = processColor('blue');
+        newColor = processColor("blue");
         if (wasBreathIn) {
           setBreathOutState(true);
         }
@@ -168,7 +170,7 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
     tensColors.push(newColor);
 
     if (wasBreathIn && wasBreathOut) {
-      setBreathAmount(prevBreathsAmount => prevBreathsAmount + 1);
+      setBreathAmount((prevBreathsAmount) => prevBreathsAmount + 1);
       setBreathInState(false);
       setBreathOutState(false);
     }
@@ -186,22 +188,22 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
         for (let j = 0; j < n; j++) {
           sum += data[i - j].y;
         }
-        result.push({y: sum / n});
+        result.push({ y: sum / n });
       }
     }
     return result;
   }
 
   function normalize(data: any[]): any {
-    let maxY = Math.max(...data.map((p: {y: any}) => p.y));
-    let minY = Math.min(...data.map((p: {y: any}) => p.y));
-    return data.map(point => ({
+    let maxY = Math.max(...data.map((p: { y: any }) => p.y));
+    let minY = Math.min(...data.map((p: { y: any }) => p.y));
+    return data.map((point) => ({
       y: (2 * (point.y - minY)) / (maxY - minY) - 1,
     }));
   }
 
   function handleNaN(data, defaultValue = 0) {
-    return data.map(point => ({
+    return data.map((point) => ({
       y: isNaN(point.y) ? defaultValue : point.y,
     }));
   }
@@ -216,15 +218,17 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
           <TouchableOpacity
             onPress={() => readDemoData()}
             style={styles.demoChartStyle}
-            disabled={isPlaying}>
+            disabled={isPlaying}
+          >
             <Text style={styles.startChartButtonText}>
-              {isPlaying ? 'PLAYING...' : 'DEMO'}
+              {isPlaying ? "PLAYING..." : "DEMO"}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => resetChart()}
-            style={styles.resetChartStyle}>
+            style={styles.resetChartStyle}
+          >
             <Text style={styles.resetChartButtonText}>RESET</Text>
           </TouchableOpacity>
         </View>
@@ -235,15 +239,16 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
 
       <View style={styles.chart}>
         <LineChart
-          legend={{enabled: false}}
-          style={{flex: 1}}
+          legend={{ enabled: false }}
+          chartDescription={{ text: "" }}
+          style={{ flex: 1 }}
           data={{
             dataSets: [
               {
                 values: normalizedAccPoints,
-                label: 'Acc',
+                label: "Acc",
                 config: {
-                  color: processColor('red'),
+                  color: processColor("red"),
                   drawCircles: false,
                   lineWidth: 3,
                   drawValues: false,
@@ -251,7 +256,7 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
               },
               {
                 values: tensPointToDisplay,
-                label: 'Tens',
+                label: "Tens",
                 config: {
                   colors: tensColors.slice(-CHART_WINDOW + 1),
                   drawCircles: false,
@@ -268,9 +273,10 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
           onPress={() => startChart()}
           style={
             isRunning.current ? styles.stopChartStyle : styles.startChartStyle
-          }>
+          }
+        >
           <Text style={styles.startChartButtonText}>
-            {isRunning.current ? 'STOP' : 'START'}
+            {isRunning.current ? "STOP" : "START"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -280,104 +286,104 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
-    backgroundColor: '#FFF',
+    height: "100%",
+    backgroundColor: "#FFF",
   },
   chart: {
-    height: '85%',
-    backgroundColor: '#FFF',
-    width: '95%',
-    alignSelf: 'center',
+    height: "85%",
+    backgroundColor: "#FFF",
+    width: "95%",
+    alignSelf: "center",
   },
   informationBox: {
     marginTop: 5,
-    flexDirection: 'row',
-    height: '7.5%',
-    backgroundColor: '#FFF',
-    justifyContent: 'space-evenly',
+    flexDirection: "row",
+    height: "7.5%",
+    backgroundColor: "#FFF",
+    justifyContent: "space-evenly",
   },
   breathsBox: {
     flex: 2,
   },
   breathsText: {
     fontSize: 40,
-    color: 'black',
-    justifyContent: 'center',
-    alignSelf: 'center',
+    color: "black",
+    justifyContent: "center",
+    alignSelf: "center",
   },
   timerBox: {
     flex: 2,
   },
   timerText: {
     fontSize: 40,
-    color: 'black',
-    justifyContent: 'center',
-    alignSelf: 'center',
+    color: "black",
+    justifyContent: "center",
+    alignSelf: "center",
   },
   buttons: {
     flex: 3,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   startStopBox: {
-    height: '7.5%',
-    width: '90%',
-    alignSelf: 'center',
+    height: "7.5%",
+    width: "90%",
+    alignSelf: "center",
     paddingBottom: 10,
   },
   resetChartStyle: {
     flex: 2,
-    height: '100%',
+    height: "100%",
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: "black",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   demoChartStyle: {
     flex: 2,
-    height: '100%',
+    height: "100%",
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: "black",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   startChartStyle: {
-    height: '100%',
+    height: "100%",
     borderWidth: 1,
-    borderColor: 'black',
-    backgroundColor: '#1fd655',
+    borderColor: "black",
+    backgroundColor: "#1fd655",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   stopChartStyle: {
-    height: '100%',
+    height: "100%",
     borderWidth: 1,
-    borderColor: 'black',
-    backgroundColor: '#FF474C',
+    borderColor: "black",
+    backgroundColor: "#FF474C",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   resetChartButtonText: {
     fontSize: 15,
-    color: '#000',
+    color: "#000",
   },
   startChartButtonText: {
     fontSize: 15,
-    color: '#000',
+    color: "#000",
   },
 });
 
