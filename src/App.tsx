@@ -40,14 +40,14 @@ const App = () => {
   const [predMargin, setPredMargin] = useState(0.8);
   const [movingAverage, setMovingAverage] = useState(5);
   const [statusBar, setStatusBar] = useState({
-    selectedModel: "networkTest",
+    selectedModel: "StateModel",
     selectedMovingAverage: 5,
     selectedNumberOfStates: 3,
   });
 
   useEffect(() => {
     if (Platform.OS === "android") {
-      NativeModules.TFLiteModule.loadModel(5, "networkTest");
+      NativeModules.TFLiteModule.loadModel(5, "StateModel");
     }
   }, []);
 

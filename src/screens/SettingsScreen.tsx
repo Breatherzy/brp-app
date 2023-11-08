@@ -14,7 +14,7 @@ const TWO_STATE_MODEL = 0;
 
 const SettingsScreen = ({ setPredMargin, setMovingAverage, setStatusBar }) => {
   const [isEnabled, setIsEnabled] = useState(true); // if true, 3-state model, else 2-state model
-  const [modelName, setModelName] = useState("networkTest");
+  const [modelName, setModelName] = useState("StateModel");
   const [sizeOfBuffer, setSizeOfBuffer] = useState(5);
 
   useEffect(() => {
@@ -54,14 +54,14 @@ const SettingsScreen = ({ setPredMargin, setMovingAverage, setStatusBar }) => {
       <Text style={styles.Text}>Select model type:</Text>
 
       <Pressable
-        onPress={() => handleModelSelection("networkTest", 5)}
+        onPress={() => handleModelSelection("StateModel", 5)}
         style={styles.Button}
       >
         <Text style={styles.ButtonText}>State Model</Text>
       </Pressable>
 
       <Pressable
-        onPress={() => handleModelSelection("stopNetwork", 10)}
+        onPress={() => handleModelSelection("MonoModel", 10)}
         style={styles.Button}
       >
         <Text style={styles.ButtonText}>Mono Model</Text>
