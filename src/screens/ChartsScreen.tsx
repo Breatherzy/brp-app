@@ -26,9 +26,9 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
   const { tensPoints, setTensPoints } = useTensometerData();
   const [tensColors, setTensColors] = useState([]);
 
-  const [normalizedAccPoints, setNormalizedAccPoints] = useState<any[]>([]);
-  const [normalizedTensPoints, setNormalizedTensPoints] = useState<any[]>([]);
-  const [tensPointToDisplay, setTensPointToDisplay] = useState<any[]>([]);
+  const [normalizedAccPoints, setNormalizedAccPoints] = useState([]);
+  const [normalizedTensPoints, setNormalizedTensPoints] = useState([]);
+  const [tensPointsToDisplay, setTensPointsToDisplay] = useState([]);
   const isRunning = useRef(false);
   const reset = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -52,7 +52,7 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
     setNormalizedAccPoints([]);
     setNormalizedTensPoints([]);
     setTensColors([]);
-    setTensPointToDisplay([]);
+    setTensPointsToDisplay([]);
   }
 
   const formatTime = (timeInSeconds) => {
@@ -123,56 +123,66 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
   }, [isActive]);
 
   useEffect(() => {
-    if (isRunning.current) {
-      if (tensPoints.length >= RANGE) {
-        tensPoints.shift();
+    try {
+      if (isRunning.current) {
+        if (tensPoints.length >= RANGE) {
+          tensPoints.shift();
+        }
+
+        if (accPoints.length >= RANGE) {
+          accPoints.shift();
+        }
+
+        const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
+        setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
+
+        const smoothedTensPoints = movingAverage(
+          tensPoints.slice(-CHART_WINDOW)
+        );
+        setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
+
+        if (normalizedTensPoints.length > movingAverageWindow) {
+          predictData();
+        } else {
+          setTensColors((tensColors) => [...tensColors, processColor("red")]);
+        }
       }
-
-      if (accPoints.length >= RANGE) {
-        accPoints.shift();
-      }
-
-      const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
-      setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
-
-      const smoothedTensPoints = movingAverage(tensPoints.slice(-CHART_WINDOW));
-      setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
-
-      if (normalizedTensPoints.length > movingAverageWindow) {
-        predictData();
-      } else {
-        setTensColors((tensColors) => [...tensColors, processColor("red")]);
-      }
+    } catch (error) {
+      console.error("Failed to update chart", error);
     }
   }, [accPoints, tensPoints]);
 
   async function predictData() {
-    const lastFivePoints = normalizedTensPoints.slice(-movingAverageWindow);
-    const prediction = await usePrediction(lastFivePoints);
-    let newColor = processColor("green");
-    if (prediction && prediction[0]) {
-      if (prediction[0] > predMargin) {
-        newColor = processColor("red");
-        setBreathInState(true);
-      } else if (prediction[0] < -predMargin) {
-        newColor = processColor("blue");
-        if (wasBreathIn) {
-          setBreathOutState(true);
+    try {
+      const lastFivePoints = normalizedTensPoints.slice(-movingAverageWindow);
+      const prediction = await usePrediction(lastFivePoints);
+      let newColor = processColor("green");
+      if (prediction && prediction[0]) {
+        if (prediction[0] > predMargin) {
+          newColor = processColor("red");
+          setBreathInState(true);
+        } else if (prediction[0] < -predMargin) {
+          newColor = processColor("blue");
+          if (wasBreathIn) {
+            setBreathOutState(true);
+          }
         }
       }
-    }
 
-    if (tensColors.length >= RANGE) {
-      tensColors.shift();
-    }
+      if (tensColors.length >= RANGE) {
+        tensColors.shift();
+      }
 
-    setTensPointToDisplay(normalizedTensPoints);
-    tensColors.push(newColor);
+      setTensPointsToDisplay(normalizedTensPoints);
+      tensColors.push(newColor);
 
-    if (wasBreathIn && wasBreathOut) {
-      setBreathAmount((prevBreathsAmount) => prevBreathsAmount + 1);
-      setBreathInState(false);
-      setBreathOutState(false);
+      if (wasBreathIn && wasBreathOut) {
+        setBreathAmount((prevBreathsAmount) => prevBreathsAmount + 1);
+        setBreathInState(false);
+        setBreathOutState(false);
+      }
+    } catch (error) {
+      console.error("Failed to predict", error);
     }
   }
 
@@ -273,7 +283,7 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
                 },
               },
               {
-                values: tensPointToDisplay,
+                values: tensPointsToDisplay,
                 label: "Tens",
                 config: {
                   colors: tensColors.slice(-CHART_WINDOW + 1),

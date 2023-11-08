@@ -20,6 +20,7 @@
     "react-native-ble-manager": "^10.1.5",
     "react-native-charts-wrapper": "^0.5.11",
     "react-native-fs": "^2.20.0",
+    "react-native-keep-awake": "^4.0.0",
     "react-native-pager-view": "^6.2.2"
   },
   "devDependencies": {
