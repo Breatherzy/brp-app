@@ -44,10 +44,15 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
     setIsActive(isRunning.current);
   }
 
+  async function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async function resetChart() {
     reset.current = true;
     isRunning.current = false;
     setIsActive(isRunning.current);
+    await sleep(50);
     setSeconds(0);
     setBreathAmount(0);
     setAccPoints([]);
