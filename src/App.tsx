@@ -53,7 +53,7 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="default" />
       <StatusBarComponent statusBar={statusBar} />
       <TensometerDataContext.Provider value={{ tensPoints, setTensPoints }}>
         <AccelerometerDataContext.Provider value={{ accPoints, setAccPoints }}>
@@ -104,6 +104,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    color: "#000",
   },
 });
 
