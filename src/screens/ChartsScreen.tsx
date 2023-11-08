@@ -17,22 +17,14 @@ import RNFS from 'react-native-fs';
 
 const RANGE = 300;
 const CHART_WINDOW = 150;
-const MOVING_AVERAGE_WINDOW = 5;
 const TIME_INTERVAL = 25;
-const PRED_MARGIN = 0.8;
 
-function ChartsScreen() {
+function ChartsScreen({ predMargin, movingAverageWindow }) {
   const {accPoints, setAccPoints} = useAccelerometerData();
   const {seconds, setSeconds} = useUserData();
   const {breathAmount, setBreathAmount} = useUserData();
   const {tensPoints, setTensPoints} = useTensometerData();
-  const [tensColors, setTensColors] = useState([
-    processColor('red'),
-    processColor('red'),
-    processColor('red'),
-    processColor('red'),
-    processColor('red'),
-  ]);
+  const [tensColors, setTensColors] = useState([]);
 
   const [normalizedAccPoints, setNormalizedAccPoints] = useState<any[]>([]);
   const [normalizedTensPoints, setNormalizedTensPoints] = useState<any[]>([]);
@@ -59,13 +51,7 @@ function ChartsScreen() {
     setTensPoints([]);
     setNormalizedAccPoints([]);
     setNormalizedTensPoints([]);
-    setTensColors([
-      processColor('red'),
-      processColor('red'),
-      processColor('red'),
-      processColor('red'),
-      processColor('red'),
-    ]);
+    setTensColors([]);
     setTensPointToDisplay([]);
   }
 
@@ -150,21 +136,23 @@ function ChartsScreen() {
       const smoothedTensPoints = movingAverage(tensPoints.slice(-CHART_WINDOW));
       setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
 
-      if (normalizedTensPoints.length > MOVING_AVERAGE_WINDOW) {
+      if (normalizedTensPoints.length > movingAverageWindow) {
         predictData();
+      }else{
+        setTensColors(tensColors => [...tensColors, processColor('red')]);
       }
     }
   }, [accPoints, tensPoints]);
 
   async function predictData() {
-    const lastFivePoints = normalizedTensPoints.slice(-5);
+    const lastFivePoints = normalizedTensPoints.slice(-movingAverageWindow);
     const prediction = await usePrediction(lastFivePoints);
     let newColor = processColor('green');
     if (prediction && prediction[0]) {
-      if (prediction[0] > PRED_MARGIN) {
+      if (prediction[0] > predMargin) {
         newColor = processColor('red');
         setBreathInState(true);
-      } else if (prediction[0] < -PRED_MARGIN) {
+      } else if (prediction[0] < -predMargin) {
         newColor = processColor('blue');
         if (wasBreathIn) {
           setBreathOutState(true);
@@ -186,7 +174,7 @@ function ChartsScreen() {
     }
   }
 
-  function movingAverage(data: string | any[], n = MOVING_AVERAGE_WINDOW) {
+  function movingAverage(data: string | any[], n = movingAverageWindow) {
     let result = [];
     for (let i = 0; i < data.length; i++) {
       if (i < n - 1) {

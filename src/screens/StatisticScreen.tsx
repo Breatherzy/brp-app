@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#64A6BD',
+    backgroundColor: '#0082FC',
     padding: 6,
   },
   header: {

@@ -9,7 +9,7 @@ export const usePrediction = async points => {
       const result = await MLBridge.predict(...points.map(p => p.y));
       return result;
     } else {
-      const result = await MLBridge.predict(...points.map(p => p.y));
+      const result = await MLBridge.predict(points.map(p => p.y));
       return [result];
     }
   } catch (error) {
