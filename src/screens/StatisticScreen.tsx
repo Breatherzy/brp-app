@@ -1,10 +1,13 @@
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import React from 'react';
+import { useState } from 'react';
 import {useUserData} from '../hooks/useUserData';
 
 function StatisticScreen() {
   const {seconds, setSeconds} = useUserData();
   const {breathAmount, setBreathAmount} = useUserData();
+
+
 
   const averageBreathAmount = (breathAmount * 60) / seconds;
   return (
@@ -13,13 +16,13 @@ function StatisticScreen() {
         <Text style={styles.headerText}>Statistic Screen</Text>
       </View>
       <View style={styles.informations}>
-        <View style={styles.textsBox}>
-          <Text style={styles.breathCounterText}>Ilość oddechów:</Text>
-          <Text style={styles.averageBreaths}>Średnia ilość oddechów:</Text>
+        <View style={styles.boxCounter}>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.breathCounterText}>Ilość oddechów:</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.breathCounter}>{breathAmount}</Text>
         </View>
         <View style={styles.numbersBox}>
-          <Text style={styles.breathCounter}>{breathAmount}</Text>
-          <Text style={styles.averageBreathAmount}>
+          <Text numberOfLines={2} adjustsFontSizeToFit style={styles.averageBreaths}>Średnia ilość oddechów:</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.averageBreathAmount}>
             {parseFloat(averageBreathAmount.toFixed(2))}
           </Text>
         </View>
@@ -47,40 +50,43 @@ const styles = StyleSheet.create({
   },
   informations: {
     height: '90%',
-    flexDirection: 'row',
+    flexDirection: 'column',
   },
-  textsBox: {
-    width: '50%',
-    height: 200,
+  boxCounter: {
+    width:'80%',
+    flexDirection:'row',
+    justifyContent: 'center',
+    height: '20%',
   },
   breathCounterText: {
     fontSize: 30,
-    marginLeft: 30,
-    textAlign: 'left',
+    width:'75%',
+    alignSelf: 'center',
     color: 'black',
     justifyContent: 'center',
   },
   averageBreaths: {
-    marginTop: 20,
-    marginLeft: 30,
-    textAlign: 'left',
+    width: '75%',
+    alignSelf: 'center',
     fontSize: 30,
     color: 'black',
     justifyContent: 'center',
   },
   numbersBox: {
-    width: '50%',
-    height: 200,
+    width: '80%',
+    height: '20%',
+    flexDirection:'row',
+    justifyContent: 'center',
   },
   breathCounter: {
-    marginTop: 15,
+    width: '25%',
+    justifyContent: 'center',
     fontSize: 40,
     color: 'black',
-    justifyContent: 'center',
     alignSelf: 'center',
   },
   averageBreathAmount: {
-    marginTop: 55,
+    width: '25%',
     fontSize: 40,
     color: 'black',
     justifyContent: 'center',

@@ -222,26 +222,28 @@ function ChartsScreen() {
     <View style={styles.container}>
       <View style={styles.informationBox}>
         <View style={styles.timerBox}>
-          <Text style={styles.timerText}>{formatTime(seconds)}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.timerText}>{formatTime(seconds)}</Text>
         </View>
         <View style={styles.buttons}>
           <TouchableOpacity
             onPress={() => readDemoData()}
             style={styles.demoChartStyle}
             disabled={isPlaying}>
-            <Text style={styles.startChartButtonText}>
-              {isPlaying ? 'PLAYING...' : 'DEMO'}
+            <Text numberOfLines={1}
+            adjustsFontSizeToFit
+            style={styles.startChartButtonText}>
+              {isPlaying ? 'PLAYING..' : 'DEMO'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => resetChart()}
             style={styles.resetChartStyle}>
-            <Text style={styles.resetChartButtonText}>RESET</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit style={styles.resetChartButtonText}>RESET</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.breathsBox}>
-          <Text style={styles.breathsText}>{breathAmount}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.breathsText}>{breathAmount}</Text>
         </View>
       </View>
 
@@ -281,7 +283,7 @@ function ChartsScreen() {
           style={
             isRunning.current ? styles.stopChartStyle : styles.startChartStyle
           }>
-          <Text style={styles.startChartButtonText}>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={{textAlign: 'center', fontSize: 50, color:'black', justifyContent:'center'}}>
             {isRunning.current ? 'STOP' : 'START'}
           </Text>
         </TouchableOpacity>
@@ -342,8 +344,8 @@ const styles = StyleSheet.create({
     height: '100%',
     borderWidth: 1,
     borderColor: 'black',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 3,
+    paddingHorizontal: 3,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -353,8 +355,8 @@ const styles = StyleSheet.create({
     height: '100%',
     borderWidth: 1,
     borderColor: 'black',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 3,
+    paddingHorizontal: 3,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -365,8 +367,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'black',
     backgroundColor: '#1fd655',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 3,
+    paddingHorizontal: 3,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -377,19 +379,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'black',
     backgroundColor: '#FF474C',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingVertical: 3,
+    paddingHorizontal: 3,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   resetChartButtonText: {
-    fontSize: 15,
+    fontSize: 50,
     color: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   startChartButtonText: {
-    fontSize: 15,
+    fontSize: 50,
     color: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
