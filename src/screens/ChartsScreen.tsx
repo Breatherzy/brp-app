@@ -25,8 +25,8 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
   const { seconds, setSeconds } = useUserData();
   const { breathAmount, setBreathAmount } = useUserData();
 
-  const [normalizedAccPoints, setNormalizedAccPoints] = useState([]);
-  const [normalizedTensPoints, setNormalizedTensPoints] = useState([]);
+  var normalizedAccPoints = [];
+  var normalizedTensPoints = [];
   const [tensPointsToDisplay, setTensPointsToDisplay] = useState<any>({
     values: [],
     colors: [],
@@ -57,8 +57,8 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
     setBreathAmount(0);
     setAccPoints([]);
     setTensPoints([]);
-    setNormalizedAccPoints([]);
-    setNormalizedTensPoints([]);
+    normalizedAccPoints = [];
+    normalizedTensPoints = [];
     setTensPointsToDisplay({ values: [], colors: [] });
   }
 
@@ -141,12 +141,13 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
         }
 
         const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
-        setNormalizedAccPoints(handleNaN(normalize(smoothedAccPoints)));
+        normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
 
         const smoothedTensPoints = movingAverage(
           tensPoints.slice(-CHART_WINDOW)
         );
-        setNormalizedTensPoints(handleNaN(normalize(smoothedTensPoints)));
+
+        normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
 
         if (normalizedTensPoints.length > movingAverageWindow) {
           predictData();
