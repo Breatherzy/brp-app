@@ -1,39 +1,88 @@
-import React, {useEffect, useState} from 'react';
-import {NativeModules, SafeAreaView, StyleSheet, Platform} from 'react-native';
-import ConnectScreen from './screens/ConnectScreen'; // Make sure the path is correct
-import ChartsScreen from './screens/ChartsScreen'; // Make sure the path is correct
-import StatisticScreen from './screens/StatisticScreen'; // Make sure the path is correct
-import {NavigationContainer} from '@react-navigation/native';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import AccelerometerDataContext from './contexts/AccelerometerDataContext';
-import TensometerDataContext from './contexts/TensometerDataContext';
-import UserDataContext from './contexts/UserDataContext';
+import React, { useEffect, useState } from "react";
+import {
+  NativeModules,
+  SafeAreaView,
+  StyleSheet,
+  Platform,
+  View,
+  Text,
+  StatusBar,
+} from "react-native";
+import ConnectScreen from "./screens/ConnectScreen";
+import ChartsScreen from "./screens/ChartsScreen";
+import StatisticScreen from "./screens/StatisticScreen";
+import { NavigationContainer } from "@react-navigation/native";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import KeepAwake from "react-native-keep-awake";
+import AccelerometerDataContext from "./contexts/AccelerometerDataContext";
+import TensometerDataContext from "./contexts/TensometerDataContext";
+import UserDataContext from "./contexts/UserDataContext";
+import SettingsScreen from "./screens/SettingsScreen";
 
 const Tab = createMaterialTopTabNavigator();
 
+const StatusBarComponent = ({ statusBar }) => {
+  return (
+    <View style={styles.statusBarContainer}>
+      <Text style={styles.statusBarText}>
+        Model: {statusBar.selectedModel} | Moving Average:{" "}
+        {statusBar.selectedMovingAverage} | States:{" "}
+        {statusBar.selectedNumberOfStates}
+      </Text>
+    </View>
+  );
+};
+
 const App = () => {
-  const [accPoints, setAccPoints] = useState<Array<{y: number}>>([]);
-  const [tensPoints, setTensPoints] = useState<Array<{y: number}>>([]);
+  const [accPoints, setAccPoints] = useState([]);
+  const [tensPoints, setTensPoints] = useState([]);
   const [seconds, setSeconds] = useState(0);
   const [breathAmount, setBreathAmount] = useState(0);
+  const [predMargin, setPredMargin] = useState(0.8);
+  const [movingAverage, setMovingAverage] = useState(5);
+  const [statusBar, setStatusBar] = useState({
+    selectedModel: "StateModel",
+    selectedMovingAverage: 5,
+    selectedNumberOfStates: 3,
+  });
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      NativeModules.TFLiteModule.loadModel();
+    KeepAwake.activate();
+    if (Platform.OS === "android") {
+      NativeModules.TFLiteModule.loadModel(5, "StateModel");
     }
   }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      <TensometerDataContext.Provider value={{tensPoints, setTensPoints}}>
-        <AccelerometerDataContext.Provider value={{accPoints, setAccPoints}}>
+      <StatusBar barStyle="default" />
+      <StatusBarComponent statusBar={statusBar} />
+      <TensometerDataContext.Provider value={{ tensPoints, setTensPoints }}>
+        <AccelerometerDataContext.Provider value={{ accPoints, setAccPoints }}>
           <UserDataContext.Provider
-            value={{seconds, setSeconds, breathAmount, setBreathAmount}}>
+            value={{ seconds, setSeconds, breathAmount, setBreathAmount }}
+          >
             <NavigationContainer>
               <Tab.Navigator>
-                <Tab.Screen name="Connection" component={ConnectScreen} />
-                <Tab.Screen name="Charts" component={ChartsScreen} />
+                <Tab.Screen name="Connect" component={ConnectScreen} />
+                <Tab.Screen name="Charts">
+                  {() => (
+                    <ChartsScreen
+                      predMargin={predMargin}
+                      movingAverageWindow={movingAverage}
+                    />
+                  )}
+                </Tab.Screen>
                 <Tab.Screen name="Statistics" component={StatisticScreen} />
+                <Tab.Screen name="Settings">
+                  {() => (
+                    <SettingsScreen
+                      setPredMargin={setPredMargin}
+                      setMovingAverage={setMovingAverage}
+                      setStatusBar={setStatusBar}
+                    />
+                  )}
+                </Tab.Screen>
               </Tab.Navigator>
             </NavigationContainer>
           </UserDataContext.Provider>
@@ -46,6 +95,18 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  statusBarContainer: {
+    backgroundColor: "#f2f2f2",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    alignItems: "center",
+  },
+  statusBarText: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    color: "#000",
   },
 });
 

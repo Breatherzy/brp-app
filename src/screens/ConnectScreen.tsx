@@ -217,7 +217,7 @@ const ConnectScreen = () => {
     try {
       const connectedPeripherals = await BleManager.getConnectedPeripherals();
       if (connectedPeripherals.length === 0) {
-        console.warn("[retrieveConnected] No connected peripherals found.");
+        //console.warn("[retrieveConnected] No connected peripherals found.");
         return;
       }
 
