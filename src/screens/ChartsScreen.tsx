@@ -27,6 +27,10 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
 
   var normalizedAccPoints = [];
   var normalizedTensPoints = [];
+  const [accPointsToDisplay, setAccPointsToDisplay] = useState<any>({
+    values: [],
+    colors: [],
+  });
   const [tensPointsToDisplay, setTensPointsToDisplay] = useState<any>({
     values: [],
     colors: [],
@@ -60,6 +64,7 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
     normalizedAccPoints = [];
     normalizedTensPoints = [];
     setTensPointsToDisplay({ values: [], colors: [] });
+    setAccPointsToDisplay({ values: [], colors: [] });
   }
 
   const formatTime = (timeInSeconds) => {
@@ -150,7 +155,7 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
         normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
 
         if (normalizedTensPoints.length > movingAverageWindow) {
-          predictData();
+          predictTensData();
         } else {
           setTensPointsToDisplay((prevTensPointsToDisplay) => {
             return {
@@ -159,13 +164,20 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
             };
           });
         }
+
+        setAccPointsToDisplay((prevAccPointsToDisplay) => {
+          return {
+            values: normalizedAccPoints,
+            colors: [...prevAccPointsToDisplay.colors, processColor("red")],
+          };
+        });
       }
     } catch (error) {
       console.error("Failed to update chart", error);
     }
   }, [accPoints, tensPoints]);
 
-  async function predictData() {
+  async function predictTensData() {
     try {
       const movingAverageWindowPoints = normalizedTensPoints.slice(
         -movingAverageWindow
@@ -295,10 +307,10 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
           data={{
             dataSets: [
               {
-                values: normalizedAccPoints,
+                values: accPointsToDisplay.values,
                 label: "Acc",
                 config: {
-                  color: processColor("red"),
+                  colors: accPointsToDisplay.colors,
                   drawCircles: false,
                   lineWidth: 3,
                   drawValues: false,
