@@ -38,10 +38,10 @@ const App = () => {
   const [tensPoints, setTensPoints] = useState([]);
   const [seconds, setSeconds] = useState(0);
   const [breathAmount, setBreathAmount] = useState(0);
-  const [predMargin, setPredMargin] = useState(0.8);
+  const [predMargin, setPredMargin] = useState(0.5);
   const [movingAverage, setMovingAverage] = useState(5);
   const [statusBar, setStatusBar] = useState({
-    selectedModel: "StateModel",
+    selectedModel: "ForestModel",
     selectedMovingAverage: 5,
     selectedNumberOfStates: 3,
   });
@@ -49,7 +49,7 @@ const App = () => {
   useEffect(() => {
     KeepAwake.activate();
     if (Platform.OS === "android") {
-      NativeModules.TFLiteModule.loadModel(5, "StateModel");
+      NativeModules.TFLiteModule.loadModel(6, "ForestModel");
     }
   }, []);
 
@@ -70,6 +70,7 @@ const App = () => {
                     <ChartsScreen
                       predMargin={predMargin}
                       movingAverageWindow={movingAverage}
+                      modelName={statusBar.selectedModel}
                     />
                   )}
                 </Tab.Screen>
