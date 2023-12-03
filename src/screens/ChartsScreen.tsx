@@ -141,13 +141,6 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
           tensPoints.shift();
         }
 
-        if (accPoints.length >= RANGE) {
-          accPoints.shift();
-        }
-
-        const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
-        normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
-
         const smoothedTensPoints = movingAverage(
           tensPoints.slice(-CHART_WINDOW)
         );
@@ -164,6 +157,22 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
             };
           });
         }
+      }
+    } catch (error) {
+      console.error("Failed to update chart", error);
+    }
+  }, [tensPoints]);
+
+  useEffect(() => {
+    try {
+      if (isRunning.current) {
+        if (accPoints.length >= RANGE) {
+          accPoints.shift();
+        }
+
+        const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
+
+        normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
 
         setAccPointsToDisplay((prevAccPointsToDisplay) => {
           return {
@@ -175,7 +184,7 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
     } catch (error) {
       console.error("Failed to update chart", error);
     }
-  }, [accPoints, tensPoints]);
+  }, [accPoints]);
 
   async function predictTensData() {
     try {
@@ -302,7 +311,28 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
       <View style={styles.chart}>
         <LineChart
           legend={{ enabled: false }}
-          chartDescription={{ text: "" }}
+          chartDescription={{ text: "Tensometer" }}
+          style={{ flex: 1 }}
+          data={{
+            dataSets: [
+              {
+                values: tensPointsToDisplay.values,
+                label: "Tens",
+                config: {
+                  colors: tensPointsToDisplay.colors,
+                  drawCircles: false,
+                  lineWidth: 3,
+                  drawValues: false,
+                },
+              },
+            ],
+          }}
+        />
+      </View>
+      <View style={styles.chart}>
+        <LineChart
+          legend={{ enabled: false }}
+          chartDescription={{ text: "Accelerometer" }}
           style={{ flex: 1 }}
           data={{
             dataSets: [
@@ -311,16 +341,6 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
                 label: "Acc",
                 config: {
                   colors: accPointsToDisplay.colors,
-                  drawCircles: false,
-                  lineWidth: 3,
-                  drawValues: false,
-                },
-              },
-              {
-                values: tensPointsToDisplay.values,
-                label: "Tens",
-                config: {
-                  colors: tensPointsToDisplay.colors,
                   drawCircles: false,
                   lineWidth: 3,
                   drawValues: false,
@@ -361,7 +381,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
   },
   chart: {
-    height: "85%",
+    height: "42%",
     backgroundColor: "#FFF",
     width: "95%",
     alignSelf: "center",
