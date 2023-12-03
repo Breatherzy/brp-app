@@ -14,12 +14,16 @@ const TWO_STATE_MODEL = 0;
 
 const SettingsScreen = ({ setPredMargin, setMovingAverage, setStatusBar }) => {
   const [isEnabled, setIsEnabled] = useState(true); // if true, 3-state model, else 2-state model
-  const [modelName, setModelName] = useState("StateModel");
+  const [modelName, setModelName] = useState("ForestModel");
   const [sizeOfBuffer, setSizeOfBuffer] = useState(5);
 
   useEffect(() => {
     if (Platform.OS === "android") {
+      if (modelName === "ForestModel") {
+      NativeModules.TFLiteModule.loadModel(sizeOfBuffer+1, modelName);
+    }else{
       NativeModules.TFLiteModule.loadModel(sizeOfBuffer, modelName);
+    }
     }
   }, [sizeOfBuffer, modelName]);
 
@@ -71,6 +75,16 @@ const SettingsScreen = ({ setPredMargin, setMovingAverage, setStatusBar }) => {
         ]}
       >
         <Text style={styles.ButtonText}>Mono Model</Text>
+      </Pressable>
+
+      <Pressable
+        onPress={() => handleModelSelection("ForestModel", 5)}
+        style={[
+          styles.Button,
+          modelName === "ForestModel" && { backgroundColor: "#069400" },
+        ]}
+      >
+        <Text style={styles.ButtonText}>Forest Model</Text>
       </Pressable>
     </View>
   );

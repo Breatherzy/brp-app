@@ -19,7 +19,7 @@ const RANGE = 300;
 const CHART_WINDOW = 150;
 const TIME_INTERVAL = 25;
 
-function ChartsScreen({ predMargin, movingAverageWindow }) {
+function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
   const { accPoints, setAccPoints } = useAccelerometerData();
   const { tensPoints, setTensPoints } = useTensometerData();
   const { seconds, setSeconds } = useUserData();
@@ -151,13 +151,6 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
 
         if (normalizedTensPoints.length > movingAverageWindow) {
           predictData();
-        } else {
-          setTensPointsToDisplay((prevTensPointsToDisplay) => {
-            return {
-              values: normalizedTensPoints,
-              colors: [...prevTensPointsToDisplay.colors, processColor("red")],
-            };
-          });
         }
       }
     } catch (error) {
@@ -167,9 +160,13 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
 
   async function predictData() {
     try {
-      const movingAverageWindowPoints = normalizedTensPoints.slice(
-        -movingAverageWindow
-      );
+      const movingAverageWindowPoints = normalizedTensPoints.slice(-movingAverageWindow);
+
+      if (modelName === "ForestModel") {
+        const yValues = movingAverageWindowPoints.map(point => point.y);
+        const amplitude = Math.max(...yValues) - Math.min(...yValues);
+        movingAverageWindowPoints.push({ "y": amplitude });
+      }
       const prediction = await usePrediction(movingAverageWindowPoints);
       let newColor = processColor("green");
       if (prediction && prediction[0]) {
@@ -185,12 +182,8 @@ function ChartsScreen({ predMargin, movingAverageWindow }) {
       }
 
       setTensPointsToDisplay((prevTensPointsToDisplay) => {
-        // console.log(
-        //   prevTensPointsToDisplay.values.length,
-        //   prevTensPointsToDisplay.colors.length
-        // );
         return {
-          values: normalizedTensPoints,
+          values: [...prevTensPointsToDisplay.values.slice(-CHART_WINDOW + 1), movingAverageWindowPoints[0]],
           colors: [
             ...prevTensPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
             newColor,
