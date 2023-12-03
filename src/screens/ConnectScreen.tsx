@@ -18,6 +18,11 @@ import { Colors } from "react-native/Libraries/NewAppScreen";
 import { promptForEnableLocationIfNeeded } from "react-native-android-location-enabler";
 
 const SECONDS_TO_SCAN_FOR = 3;
+const INODE_SERVICE_UUID = "04710c44-c624-de89-c1bc-4396089d1886";
+const INODE_CHARACTERISTIC_UUID = "04710c43-4c62-4de8-9c1b-c439689d1886";
+const INODE_WORK_MODE = [0xc0, 0x84];
+const INODE_BATTERY_SERVICE_UUID = "180f";
+const INODE_BATTERY_CHARACTERISTIC_UUID = "2a19";
 const ACC_SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
 const ACC_CHARACTERISTIC_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
 const TENS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
@@ -50,6 +55,7 @@ declare module "react-native-ble-manager" {
 const ConnectScreen = () => {
   const { setAccPoints } = useAccelerometerData();
   const { setTensPoints } = useTensometerData();
+  const [batteryLevels, setBatteryLevels] = useState(new Map());
   const [isScanning, setIsScanning] = useState(false);
   const [peripherals, setPeripherals] = useState(
     new Map<Peripheral["id"], Peripheral>()
@@ -108,6 +114,10 @@ const ConnectScreen = () => {
           ...peripheral,
           connected: false,
         });
+        setBatteryLevels((prev) => {
+          prev.delete(peripheral.id);
+          return new Map(prev);
+        });
       }
       console.debug(
         `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`
@@ -132,6 +142,9 @@ const ConnectScreen = () => {
       } else {
         console.error("Failed to compute tensometer value.");
       }
+    } else if (data.service == INODE_SERVICE_UUID) {
+      const inodeData = computeInodeValue(data);
+      setAccPoints((prevData) => [...prevData, { y: inodeData }]);
     }
   };
 
@@ -159,6 +172,25 @@ const ConnectScreen = () => {
   function uint8ArrayToString(data) {
     return String.fromCharCode.apply(null, data);
   }
+
+  const computeInodeValue = (data: { value: Iterable<number> }) => {
+    const bytes = new Int8Array(data.value);
+
+    const axL = bytes[0];
+    const axH = bytes[1];
+    const ayL = bytes[2];
+    const ayH = bytes[3];
+    const azL = bytes[4];
+    const azH = bytes[5];
+
+    const ax = (axH * 256 + axL) / 16000.0;
+    const ay = (ayH * 256 + ayL) / 16000.0;
+    const az = (azH * 256 + azL) / 16000.0;
+
+    const sumAcc = Math.abs(ax + ay + az);
+
+    return sumAcc;
+  };
 
   const computeTensometerValue = (data: { value: Iterable<number> }) => {
     const rawInput = uint8ArrayToString(new Uint8Array(data.value));
@@ -267,30 +299,80 @@ const ConnectScreen = () => {
         //   `[connectPeripheral][${peripheral.id}] retrieved peripheral services`,
         //   peripheralData
         // );
-        if (peripheralData.characteristics) {
-          for (const characteristic of peripheralData.characteristics) {
-            if (characteristic.service === ACC_SERVICE_UUID) {
-              await BleManager.startNotification(
-                peripheral.id,
-                ACC_SERVICE_UUID,
-                ACC_CHARACTERISTIC_UUID
-              );
+
+        const services = peripheralData.characteristics?.map((c) => c.service);
+
+        if (services?.includes(INODE_SERVICE_UUID)) {
+          BleManager.write(
+            peripheral.id,
+            INODE_SERVICE_UUID,
+            INODE_CHARACTERISTIC_UUID,
+            INODE_WORK_MODE
+          )
+            .then(() => {
               console.debug(
-                `[connectPeripheral][${peripheral.id}] start accelerometer notification`
+                `[connectPeripheral][${peripheral.id}] set inode work mode`
               );
-              break;
-            } else if (characteristic.service === TENS_SERVICE_UUID) {
-              await BleManager.startNotification(
-                peripheral.id,
-                TENS_SERVICE_UUID,
-                TENS_CHARACTERISTIC_UUID
+            })
+            .catch((error) => {
+              console.error(
+                `[connectPeripheral][${peripheral.id}] write error`,
+                error
               );
+            });
+
+          BleManager.read(
+            peripheral.id,
+            INODE_BATTERY_SERVICE_UUID,
+            INODE_BATTERY_CHARACTERISTIC_UUID
+          )
+            .then((data) => {
               console.debug(
-                `[connectPeripheral][${peripheral.id}] start tensometer notification`
+                `[connectPeripheral][${peripheral.id}] read battery level`,
+                data
               );
-              break;
-            }
-          }
+              setBatteryLevels(
+                (prev) => new Map(prev.set(peripheral.id, data))
+              );
+            })
+            .catch((error) => {
+              console.error(
+                `[connectPeripheral][${peripheral.id}] read battery level error`,
+                error
+              );
+            });
+
+          await BleManager.startNotification(
+            peripheral.id,
+            INODE_SERVICE_UUID,
+            INODE_CHARACTERISTIC_UUID
+          );
+
+          console.debug(
+            `[connectPeripheral][${peripheral.id}] started notification for inode service.`
+          );
+        }
+
+        if (services?.includes(ACC_SERVICE_UUID)) {
+          await BleManager.startNotification(
+            peripheral.id,
+            ACC_SERVICE_UUID,
+            ACC_CHARACTERISTIC_UUID
+          );
+          console.debug(
+            `[connectPeripheral][${peripheral.id}] started notification for accelerometer service.`
+          );
+        }
+
+        if (services?.includes(TENS_SERVICE_UUID)) {
+          await BleManager.startNotification(
+            peripheral.id,
+            TENS_SERVICE_UUID,
+            TENS_CHARACTERISTIC_UUID
+          );
+          console.debug(
+            `[connectPeripheral][${peripheral.id}] started notification for tensometer service.`
+          );
         }
       }
     } catch (error) {
@@ -341,7 +423,6 @@ const ConnectScreen = () => {
         listener.remove();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAndroidPermissions = async () => {
@@ -418,9 +499,10 @@ const ConnectScreen = () => {
       >
         <View style={[styles.row, { backgroundColor }]}>
           <Text style={styles.peripheralName}>
-            {/* completeLocalName (item.name) & shortAdvertisingName (advertising.localName) may not always be the same */}
             {item.name}
             {item.connecting && " - Connecting..."}
+            {batteryLevels.get(item.id) &&
+              ` - Battery: ${batteryLevels.get(item.id)}%`}
           </Text>
           {/* <Text style={styles.rssi}>RSSI: {item.rssi}</Text> */}
           <Text style={styles.peripheralId}>{item.id}</Text>

@@ -27,6 +27,10 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
 
   var normalizedAccPoints = [];
   var normalizedTensPoints = [];
+  const [accPointsToDisplay, setAccPointsToDisplay] = useState<any>({
+    values: [],
+    colors: [],
+  });
   const [tensPointsToDisplay, setTensPointsToDisplay] = useState<any>({
     values: [],
     colors: [],
@@ -60,6 +64,7 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
     normalizedAccPoints = [];
     normalizedTensPoints = [];
     setTensPointsToDisplay({ values: [], colors: [] });
+    setAccPointsToDisplay({ values: [], colors: [] });
   }
 
   const formatTime = (timeInSeconds) => {
@@ -136,13 +141,6 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
           tensPoints.shift();
         }
 
-        if (accPoints.length >= RANGE) {
-          accPoints.shift();
-        }
-
-        const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
-        normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
-
         const smoothedTensPoints = movingAverage(
           tensPoints.slice(-CHART_WINDOW)
         );
@@ -150,15 +148,38 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
         normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
 
         if (normalizedTensPoints.length > movingAverageWindow) {
-          predictData();
+          predictTensData();
         }
       }
     } catch (error) {
       console.error("Failed to update chart", error);
     }
-  }, [accPoints, tensPoints]);
+  }, [tensPoints]);
 
-  async function predictData() {
+  useEffect(() => {
+    try {
+      if (isRunning.current) {
+        if (accPoints.length >= RANGE) {
+          accPoints.shift();
+        }
+
+        const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
+
+        normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
+
+        setAccPointsToDisplay((prevAccPointsToDisplay) => {
+          return {
+            values: normalizedAccPoints,
+            colors: [...prevAccPointsToDisplay.colors, processColor("red")],
+          };
+        });
+      }
+    } catch (error) {
+      console.error("Failed to update chart", error);
+    }
+  }, [accPoints]);
+
+  async function predictTensData() {
     try {
       const movingAverageWindowPoints = normalizedTensPoints.slice(-movingAverageWindow);
 
@@ -283,25 +304,36 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
       <View style={styles.chart}>
         <LineChart
           legend={{ enabled: false }}
-          chartDescription={{ text: "" }}
+          chartDescription={{ text: "Tensometer" }}
           style={{ flex: 1 }}
           data={{
             dataSets: [
-              {
-                values: normalizedAccPoints,
-                label: "Acc",
-                config: {
-                  color: processColor("red"),
-                  drawCircles: false,
-                  lineWidth: 3,
-                  drawValues: false,
-                },
-              },
               {
                 values: tensPointsToDisplay.values,
                 label: "Tens",
                 config: {
                   colors: tensPointsToDisplay.colors,
+                  drawCircles: false,
+                  lineWidth: 3,
+                  drawValues: false,
+                },
+              },
+            ],
+          }}
+        />
+      </View>
+      <View style={styles.chart}>
+        <LineChart
+          legend={{ enabled: false }}
+          chartDescription={{ text: "Accelerometer" }}
+          style={{ flex: 1 }}
+          data={{
+            dataSets: [
+              {
+                values: accPointsToDisplay.values,
+                label: "Acc",
+                config: {
+                  colors: accPointsToDisplay.colors,
                   drawCircles: false,
                   lineWidth: 3,
                   drawValues: false,
@@ -342,7 +374,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
   },
   chart: {
-    height: "85%",
+    height: "42%",
     backgroundColor: "#FFF",
     width: "95%",
     alignSelf: "center",
