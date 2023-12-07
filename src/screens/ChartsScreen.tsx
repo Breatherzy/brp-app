@@ -11,13 +11,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAccelerometerData } from "../hooks/useAccelerometerData";
 import { useTensometerData } from "../hooks/useTensometerData";
 import { useUserData } from "../hooks/useUserData";
-import { usePrediction } from "../components/NeuralNetworkModel";
+import { useTensPrediction, useAccPrediction } from "../components/NeuralNetworkModel";
 
 import RNFS from "react-native-fs";
 
 const RANGE = 300;
 const CHART_WINDOW = 150;
 const TIME_INTERVAL = 25;
+const MOVING_AVG_WINDOW_ACC = 5;
 
 function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
   const { accPoints, setAccPoints } = useAccelerometerData();
@@ -109,6 +110,7 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
         if (match && match[1]) {
           let yValue = parseFloat(match[1]);
           setTensPoints((tensPoints) => [...tensPoints, { y: yValue }]);
+          setAccPoints((accPoints) => [...accPoints, { y: yValue }]);
         }
       }
       isRunning.current = false;
@@ -163,16 +165,13 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
           accPoints.shift();
         }
 
-        const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW));
+        const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW), MOVING_AVG_WINDOW_ACC);
 
         normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
 
-        setAccPointsToDisplay((prevAccPointsToDisplay) => {
-          return {
-            values: normalizedAccPoints,
-            colors: [...prevAccPointsToDisplay.colors, processColor("red")],
-          };
-        });
+        if (normalizedAccPoints.length > MOVING_AVG_WINDOW_ACC) {
+          predictAccData();
+        }
       }
     } catch (error) {
       console.error("Failed to update chart", error);
@@ -188,7 +187,7 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
         const amplitude = Math.max(...yValues) - Math.min(...yValues);
         movingAverageWindowPoints.push({ "y": amplitude });
       }
-      const prediction = await usePrediction(movingAverageWindowPoints);
+      const prediction = await useTensPrediction(movingAverageWindowPoints);
       let newColor = processColor("green");
       if (prediction && prediction[0]) {
         if (prediction[0] > predMargin) {
@@ -217,6 +216,36 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
         setBreathInState(false);
         setBreathOutState(false);
       }
+    } catch (error) {
+      console.error("Failed to predict", error);
+    }
+  }
+
+  async function predictAccData() {
+    try {
+      const movingAverageWindowPoints =  normalizedAccPoints.slice(-MOVING_AVG_WINDOW_ACC);
+      const yValues = movingAverageWindowPoints.map(point => point.y);
+      const amplitude = Math.max(...yValues) - Math.min(...yValues);
+      movingAverageWindowPoints.push({ "y": amplitude });
+      const prediction = await useAccPrediction(movingAverageWindowPoints);
+      let newColor = processColor("green");
+      if (prediction && prediction[0]) {
+        if (prediction[0] > predMargin) {
+          newColor = processColor("red");
+        } else if (prediction[0] < -predMargin) {
+          newColor = processColor("blue");
+        }
+      }
+
+      setAccPointsToDisplay((prevAccPointsToDisplay) => {
+        return {
+          values: [...prevAccPointsToDisplay.values.slice(-CHART_WINDOW + 1), movingAverageWindowPoints[0]],
+          colors: [
+            ...prevAccPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
+            newColor,
+          ],
+        };
+      });
     } catch (error) {
       console.error("Failed to predict", error);
     }

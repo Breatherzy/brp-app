@@ -24,6 +24,9 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
     private Interpreter tflite;
     private TensorBuffer inputBuffer;
     private TensorBuffer outputBuffer;
+    private Interpreter tfliteAcc;
+    private TensorBuffer inputBufferAcc;
+    private TensorBuffer outputBufferAcc;
     private float[] inputArray5 = new float[5];
     private float[] inputArray10 = new float[10];
 
@@ -52,38 +55,87 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-public void predict(ReadableArray variables, Promise promise) {
-    if (tflite == null) {
-        promise.reject("MODEL_NOT_LOADED", "Model not loaded. Make sure to call loadModel() first.");
-        return;
-    }
+    public synchronized void loadAccModel(int sizeOfInput, String nameOfTheModel, Promise promise) {  // synchronized for safe model loading
+        try {
+            Interpreter.Options tfliteOptions = new Interpreter.Options();
+            tfliteAcc = new Interpreter(loadModelFile(nameOfTheModel), tfliteOptions);
+            // Initialize buffers after the model is loaded
+            inputBufferAcc = TensorBuffer.createFixedSize(new int[]{1, sizeOfInput}, DataType.FLOAT32);
+            outputBufferAcc = TensorBuffer.createFixedSize(tflite.getOutputTensor(0).shape(), DataType.FLOAT32);
 
-    // Set values for the inputArray
-    float[] inputArray = new float[variables.size()];
-    for (int i = 0; i < variables.size(); i++) {
-        // Make sure the value is a number and cast it to float
-        if (!variables.isNull(i) && variables.getType(i) == ReadableType.Number) {
-            inputArray[i] = (float) variables.getDouble(i);
-        } else {
-            promise.reject("INVALID_INPUT_TYPE", "Input must be an array of numbers.");
-            return;
+            promise.resolve("Model loaded successfully");
+        } catch (Exception e) {
+            promise.reject("ERROR_LOADING_MODEL", e);
         }
     }
 
-    // Load data into TensorBuffer
-    inputBuffer.loadArray(inputArray);
+    @ReactMethod
+    public void predict(ReadableArray variables, Promise promise) {
+        if (tflite == null) {
+            promise.reject("MODEL_NOT_LOADED", "Model not loaded. Make sure to call loadModel() first.");
+            return;
+        }
 
-    // Prepare output buffer assuming the output is a single float value
-    float[] outputData = new float[tflite.getOutputTensor(0).shape()[1]];
-    Arrays.fill(outputData, 0);
-    outputBuffer.loadArray(outputData);
+        // Set values for the inputArray
+        float[] inputArray = new float[variables.size()];
+        for (int i = 0; i < variables.size(); i++) {
+            // Make sure the value is a number and cast it to float
+            if (!variables.isNull(i) && variables.getType(i) == ReadableType.Number) {
+                inputArray[i] = (float) variables.getDouble(i);
+            } else {
+                promise.reject("INVALID_INPUT_TYPE", "Input must be an array of numbers.");
+                return;
+            }
+        }
 
-    // Run the prediction
-    tflite.run(inputBuffer.getBuffer(), outputBuffer.getBuffer());
+        // Load data into TensorBuffer
+        inputBuffer.loadArray(inputArray);
 
-    // Return the result
-    promise.resolve(outputBuffer.getFloatValue(0));
-}
+        // Prepare output buffer assuming the output is a single float value
+        float[] outputData = new float[tflite.getOutputTensor(0).shape()[1]];
+        Arrays.fill(outputData, 0);
+        outputBuffer.loadArray(outputData);
+
+        // Run the prediction
+        tflite.run(inputBuffer.getBuffer(), outputBuffer.getBuffer());
+
+        // Return the result
+        promise.resolve(outputBuffer.getFloatValue(0));
+    }
+
+    @ReactMethod
+    public void predictAcc(ReadableArray variables, Promise promise) {
+        if (tflite == null) {
+            promise.reject("MODEL_NOT_LOADED", "Model not loaded. Make sure to call loadAccModel() first.");
+            return;
+        }
+
+        // Set values for the inputArray
+        float[] inputArray = new float[variables.size()];
+        for (int i = 0; i < variables.size(); i++) {
+            // Make sure the value is a number and cast it to float
+            if (!variables.isNull(i) && variables.getType(i) == ReadableType.Number) {
+                inputArray[i] = (float) variables.getDouble(i);
+            } else {
+                promise.reject("INVALID_INPUT_TYPE", "Input must be an array of numbers.");
+                return;
+            }
+        }
+
+        // Load data into TensorBuffer
+        inputBufferAcc.loadArray(inputArray);
+
+        // Prepare output buffer assuming the output is a single float value
+        float[] outputData = new float[tflite.getOutputTensor(0).shape()[1]];
+        Arrays.fill(outputData, 0);
+        outputBufferAcc.loadArray(outputData);
+
+        // Run the prediction
+        tflite.run(inputBufferAcc.getBuffer(), outputBufferAcc.getBuffer());
+
+        // Return the result
+        promise.resolve(outputBufferAcc.getFloatValue(0));
+    }
 
 
     @ReactMethod
