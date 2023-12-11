@@ -1,4 +1,5 @@
 # **Dokumentacja zmian - Breath reaserch project**
+## [Dokumentacja techniczna](https://drive.google.com/drive/folders/1f0GzATS1l17tGDGbZQMPBjkeFvcuOTfD?usp=sharing)
 
 ## [BRP-2-connect-screen](https://github.com/rysiekpol/multiplatform_breath_research_project/pull/1)
 
