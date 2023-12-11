@@ -12,7 +12,7 @@ Dodanie ekranu odpowiadającego za łączenie z czujnikami.
  + ChartsScreen.tsx
  + ConnectScreen.tsx
 
- ## ** Bibilioteki**
+ ## **Bibilioteki**
  + react-native-charts-wrapper
  + react-native-pager-view
  + react-native-tab-view
@@ -28,7 +28,7 @@ Dodanie ekranu odpowiadającego za wyświetlanie wykresu.
 ### **Edytowane pliki**
  + ChartsScreen.tsx
 
- ## ** Bibilioteki**
+ ## **Bibilioteki**
  + react-native-charts-wrapper
 
 ---
@@ -64,7 +64,7 @@ Połączenie aplikacji z czujnikami.
  + ConnectScreen.tsx
  + 
 
- ## ** Bibilioteki**
+ ## **Bibilioteki**
  + react-native-ble-manager
 
  ---
@@ -112,7 +112,7 @@ Dodanie sieci neuronowej i jej obsługa na systemie Android.
  + ChartsScreen.tsx
  + ConnectScreen.tsx
 
- ## ** Bibilioteki**
+ ## **Bibilioteki**
  + tensorflow
  + leakcanary-android
  + react-native-fast-tflite
@@ -132,7 +132,7 @@ Dodanie wersji demo umozliowiającej testowanie bez połączenia z czujnikami.
  + MainApplication.java
  + ChartsScreen.tsx
 
- ## ** Bibilioteki**
+ ## **Bibilioteki**
  + react-native-fs
 
  ---
