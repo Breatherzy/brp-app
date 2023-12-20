@@ -212,7 +212,7 @@ const ConnectScreen = () => {
         n = parseInt(matcher_force_only[1]);
         force = parseInt(matcher_force_only[2]);
       }
-
+      console.log(force);
       return { n, temp, force };
     } else {
       console.warn("BLE", "Broken frame received: " + rawInput);
