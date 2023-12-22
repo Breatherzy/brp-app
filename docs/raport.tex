@@ -8,7 +8,7 @@
 
 \usepackage[a4paper, margin=2.54cm]{geometry}
 
-\title{Raport skuteczności lasów losowych}
+\title{Raport skuteczności wybranych modeli}
 \author{Maciej Szefler, Kacper Karski,
     \\Damian Jankowski, Filip Krawczak}
 
@@ -18,18 +18,19 @@
 
 \tableofcontents
 
-\section{Wstęp}
+\section{Las losowy}
+\subsection{Wstęp}
 
-Las losowy (ang. Random Forest) to algorytm uczenia maszynowego, który jest używany zarówno do zadań klasyfikacji, jak i regresji. Jest to przykład metody która polega na łączeniu wyników wielu modeli bazowych w celu uzyskania lepszej ogólnej wydajności. Działanie tego algorytmu polega na losowym wyborze podzbiorów danych z zestawu treningowego. Każde drzewo jest trenowane na innym podzbiorze danych, co wprowadza losowość i różnorodność w procesie uczenia. Podczas budowy każdego drzewa, losowo wybiera się tylko pewną liczbę cech spośród wszystkich dostępnych cech. Ten proces pomaga w zwiększeniu różnorodności modeli i unika przewagi nadmiernie wpływających cech. Następnie w przypadku klasyfikacji, algorytm Lasu Losowego przewiduje wynik na podstawie głosowania drzew, wybierając najczęściej występującą klasę. W przypadku regresji, przewiduje się średnią wartość przewidywaną przez wszystkie drzewa. Dzięki losowym podzbiorom danych i cech oraz kombinacji wielu drzew, Las Losowy jest generalnie mniej podatny na przeuczenie (ang. overfitting) niż pojedyncze drzewo decyzyjne. Różnorodność drzew pomaga w zwiększeniu ogólnej zdolności do generalizacji modelu.  Przewagą algorytmu lasu losowego jest jego wysoka skuteczność w stosunku do relatywnie niskiej ilości próbek.
+Las Losowy (ang. Random Forest) to algorytm uczenia maszynowego, który jest używany zarówno do zadań klasyfikacji, jak i regresji. Jest to przykład metody która polega na łączeniu wyników wielu modeli bazowych w celu uzyskania lepszej ogólnej wydajności. Działanie tego algorytmu polega na losowym wyborze podzbiorów danych z zestawu treningowego. Każde drzewo jest trenowane na innym podzbiorze danych, co wprowadza losowość i różnorodność w procesie uczenia. Podczas budowy każdego drzewa, losowo wybiera się tylko pewną liczbę cech spośród wszystkich dostępnych cech. Ten proces pomaga w zwiększeniu różnorodności modeli i unika przewagi nadmiernie wpływających cech. Następnie w przypadku klasyfikacji, algorytm Lasu Losowego przewiduje wynik na podstawie głosowania drzew, wybierając najczęściej występującą klasę. W przypadku regresji, przewiduje się średnią wartość przewidywaną przez wszystkie drzewa. Dzięki losowym podzbiorom danych i cech oraz kombinacji wielu drzew, Las Losowy jest generalnie mniej podatny na przeuczenie (ang. overfitting) niż pojedyncze drzewo decyzyjne. Różnorodność drzew pomaga w zwiększeniu ogólnej zdolności do generalizacji modelu.  Przewagą algorytmu lasu losowego jest jego wysoka skuteczność w stosunku do relatywnie niskiej ilości próbek.
 
 Wykorzystany algorytm lasu losowego klasyfikuje znormalizowane dane związane z oddechem. Algorytm jest używany do przewidywania trzech stanów: bezdech, wdech i wydech, na podstawie otrzymanych 5 próbek, dla których określa stan oddechu. Sklasyfikowane dane następnie są przekazywane jako dane treningowe do modelu sieci neuronowej. Cały proces można określić jako uproszczony Transfer Labelling. Algorytm Lasu Losowego działa jako etap wstępny do etapu uczenia sieci neuronowej, co prowadzi do lepszych wyników klasyfikacji danych związanych z oddechem.
 
 
-\section{Forest Model}
+\subsection{Forest Model}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{transfer_labelling_forest.png}
+    \includegraphics[width=0.75\textwidth]{las_losowy/transfer_labelling_forest.png}
     \caption{Skuteczność lasu losowego w zależności od liczby próbek treningowych}
     \label{fig:data_chart1}
 \end{figure}
@@ -51,7 +52,7 @@ Tak przygotowane wektory zostały przekazane do pliku tekstowego, a na końcu ka
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.75\textwidth]{epoch_loss_forest.png}
+    \includegraphics[width=0.75\textwidth]{las_losowy/epoch_loss_forest.png}
     \caption{Krzywa strat modelu lasów losowych}
     \label{fig:data_chart2}
 \end{figure}
@@ -65,18 +66,18 @@ Na wykresie obserwujemy także pewne artefakty w wartościach strat, które wyst
 Podsumowując, przedstawiony wykres pokazuje typową krzywą uczenia się dla modelu maszynowego, z szybkim postępem na początku i stabilizacją w miarę zbliżania się do optymalnej wydajności. Stabilizacja wartości straty na niskim poziomie wskazuje na to, że model osiągnął zadowalający poziom generalizacji. Jednakże, obserwowane fluktuacje i artefakty mogą wymagać dalszej analizy w celu zapewnienia, że model jest dobrze dostrojony i nie występuje przeuczenie.
 
 
-\section{Wyniki}
+\subsection{Wyniki}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{jak_sobie_radzi_las_losowy.png}
+    \includegraphics[width=\textwidth]{las_losowy/jak_sobie_radzi_las_losowy.png}
     \caption{Skuteczność lasu losowego od liczby próbek treningowych dla 300 próbek testowych}
     \label{fig:data_chart3}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{jak_sobie_radzi_las_losowy_2.png}
+    \includegraphics[width=\textwidth]{las_losowy/jak_sobie_radzi_las_losowy_2.png}
     \caption{Skuteczność lasu losowego od liczby próbek treningowych dla 150 próbek testowych}
     \label{fig:data_chart4}
 \end{figure}
@@ -90,11 +91,11 @@ Analizując przedstawione wykresy, można zauważyć że modele uczone na mniejs
 
 Rezultaty te mogą mieć znaczące implikacje dla monitorowania parametrów życiowych w realnym czasie, szczególnie w kontekście detekcji i analizy oddechu. Wysoka dokładność modelu przy wyższej liczbie próbek treningowych wskazuje na jego potencjalną przydatność w zastosowaniach klinicznych oraz w systemach wspierających decyzje medyczne.
 
-\section{Anomalie}
+\subsection{Anomalie}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{anomalie.png}
+    \includegraphics[width=\textwidth]{las_losowy/anomalie.png}
     \caption{Dane z anomaliami takimi jak hiperwentylacja, kaszel, wolny oddech}
     \label{fig:data_chart5}
 \end{figure}
@@ -103,10 +104,37 @@ Przedstawiony rys. \ref{fig:data_chart5} ilustruje zdolność klasyfikacji model
 
 W tym przypadku model powinien oznaczyć początek hiperwentylacji jako wdech, a koniec jako wydech. W rzeczywistości, model oznacza zmiany stanu z wydechu na bezdech jako wdech, a zmianę z wdechu na wydech jako wydech. 
 
-Kolejne 200 próbek dotyczy wolnego oddechu. W tym przypadku, model oznacza całość jako bezedch, chociaż powinien wykrywać zmiany stanu. 
+Kolejne 200 próbek dotyczy wolnego oddechu. W tym przypadku, model oznacza całość jako bezdech, chociaż powinien wykrywać zmiany stanu. 
 
 W przypadku kaszlu, czyli ostatnik 50 próbek, model oznacza calość jako wydech. Jest to bardzo nienaturalny rytm oddechu i może stanowić swojego rodzaju artefakty. Takie przypadki są ciężkie do poprawnego sklasyfikowania, ze względu na bardzo duże szumy w krótkim odstępie czasu.
 
 Żaden z powyższych przypadków nie został poprawnie sklasyfikowany przez model. Do uzyskania poprawnej klasyfikacji, model potrzebuje więcej próbek treningowych, które zawierają anomalie. Wynika to również z tego, że anomalie te są bardzo rzadkie i trudne do poprawnego sklasyfikowania, a w zbiorze na którym był trenowany las losowy, nie występowały powyższe przypadki. Aby poprawić działanie modelu, należy stworzyć osobne zbiory danych zawierające anomalie oraz ręcznie je oznaczyć. Tak przygotowane dane, pozwolą na poprawne działanie modelu w przypadku wystąpienia anomalii.
+
+\section{Batch normalization model}
+
+\subsection{Wstęp}
+
+Batch Normalization (BN) to technika stosowana w głębokich sieciach neuronowych, która ma na celu poprawę procesu uczenia się poprzez normalizację aktywacji wewnątrz warstw. Działanie tego modelu polega na podziale zestawu danych treningowych na mniejsze paczki danych, a następnie normalizacje aktywacji poprzez odejmowanie średniej i dzielenie przez odchylenie standardowe mniejszej paczki danych (mini-batch). Po znormalizowaniu, dane są skalowane i przesuwane przy użyciu dwóch parametrów gamma i beta. Wartości te są parametrami trenowanymi podczas uczenia i pozwalają na elastyczną transformację danych. BN działa jak pewnego rodzaju regularyzacja poprzez wprowadzenie szumu do procesu treningu. To zjawisko zapobiega zbytniemu dostosowaniu się modelu do konkretnych danych treningowych. Podsumowując Batch Normalization przyspiesza uczenie - pozwala przy mniejszej liczbie iteracji uzyskać takie same rezultaty jak sieci nieposiadające tej normalizacji. Umożliwia zastosowanie wyższych learning rates bez negatywnych rezultatów oraz pomaga również eliminować overfitting.
+
+\section{Sieć rekurencyjna}
+
+\subsection{Wstęp}
+
+Sieć rekurencyjna (RNN - Recurrent Neural Network) to rodzaj sztucznej sieci neuronowej, która została zaprojektowana do przetwarzania danych sekwencyjnych lub danych o zmiennej długości, uwzględniając kontekst historyczny. To odróżnia ją od standardowych sieci neuronowych, które traktują dane wejściowe jako niezależne od siebie punkty.
+
+Główną cechą sieci rekurencyjnych jest ich zdolność do pamiętania poprzednich informacji i wykorzystywania ich w przetwarzaniu aktualnych wejść. Składa się z powtarzających się modułów (lub "warstw") zwanych komórkami rekurencyjnymi. Te komórki posiadają wewnętrzny stan, który jest aktualizowany przy każdym kroku czasowym i przechowuje informacje o tym, co sieć "zapamiętała" z poprzednich kroków.
+
+Podczas trenowania sieci rekurencyjnych, algorytm propagacji wstecznej (backpropagation) jest stosowany w celu minimalizacji błędu pomiędzy predykcjami sieci a oczekiwanymi wynikami. W trakcie tego procesu wagi w sieci są dostosowywane tak, aby optymalnie przewidywać dane sekwencyjne.
+
+Istnieje wiele wariantów sieci rekurencyjnych, takich jak:
+\begin{itemize}
+    \item Standardowe RNNs (Vanilla RNNs): Prosta forma sieci rekurencyjnej, jednak ma problem z długoterminowymi zależnościami, ponieważ może wystąpić zjawisko zanikającego gradientu (vanishing gradient), co powoduje utratę informacji o odległych zależnościach w sekwencji.
+    \item Long Short-Term Memory (LSTM): Jest to ulepszona wersja RNN, która ma zdolność do przechowywania długoterminowych zależności w danych poprzez specjalne bramki, które decydują, które informacje mają zostać zapamiętane i które mają być zapomniane.
+    \item Gated Recurrent Unit (GRU): Podobne do LSTM, GRU ma mniej bramek, co sprawia, że jest bardziej efektywne obliczeniowo, ale może być mniej elastyczne w przechowywaniu długoterminowych zależności w porównaniu z LSTM.
+\end{itemize}
+
+Sieci rekurencyjne są szeroko stosowane w zadaniach przetwarzania języka naturalnego (takich jak tłumaczenie maszynowe, generowanie tekstu), analizy czasowych szeregów, rozpoznawania mowy, generowania muzyki oraz w wielu innych obszarach, gdzie dane posiadają strukturę sekwencyjną. Jednak mają pewne wady, takie jak trudności z równoległym przetwarzaniem, a także problemy z utrzymaniem informacji na długie okresy czasu w standardowych RNNs, które częściowo są rozwiązywane przez bardziej zaawansowane architektury, takie jak LSTM i GRU.
+
+\section{}
 
 \end{document}
