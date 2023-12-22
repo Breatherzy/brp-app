@@ -26,7 +26,7 @@ Las Losowy (ang. Random Forest) to algorytm uczenia maszynowego, który jest uż
 Wykorzystany algorytm lasu losowego klasyfikuje znormalizowane dane związane z oddechem. Algorytm jest używany do przewidywania trzech stanów: bezdech, wdech i wydech, na podstawie otrzymanych 5 próbek, dla których określa stan oddechu. Sklasyfikowane dane następnie są przekazywane jako dane treningowe do modelu sieci neuronowej. Cały proces można określić jako uproszczony Transfer Labelling. Algorytm Lasu Losowego działa jako etap wstępny do etapu uczenia sieci neuronowej, co prowadzi do lepszych wyników klasyfikacji danych związanych z oddechem.
 
 
-\subsection{Forest Model}
+\subsection{Wyniki}
 
 \begin{figure}[H]
     \centering
@@ -64,9 +64,6 @@ Po tej wstępnej fazie, krzywa strat wykazuje trend spadkowy, osiągając stabil
 Na wykresie obserwujemy także pewne artefakty w wartościach strat, które występują sporadycznie po około 400 epokach. Te artefakty mogą wskazywać na przeuczenie się modelu lub na niestabilności w procesie uczenia, co mogłoby być wynikiem na przykład zbyt wysokiej stopy uczenia się lub anomalii w danych treningowych.
 
 Podsumowując, przedstawiony wykres pokazuje typową krzywą uczenia się dla modelu maszynowego, z szybkim postępem na początku i stabilizacją w miarę zbliżania się do optymalnej wydajności. Stabilizacja wartości straty na niskim poziomie wskazuje na to, że model osiągnął zadowalający poziom generalizacji. Jednakże, obserwowane fluktuacje i artefakty mogą wymagać dalszej analizy w celu zapewnienia, że model jest dobrze dostrojony i nie występuje przeuczenie.
-
-
-\subsection{Wyniki}
 
 \begin{figure}[H]
     \centering
@@ -116,6 +113,27 @@ W przypadku kaszlu, czyli ostatnik 50 próbek, model oznacza calość jako wydec
 
 Batch Normalization (BN) to technika stosowana w głębokich sieciach neuronowych, która ma na celu poprawę procesu uczenia się poprzez normalizację aktywacji wewnątrz warstw. Działanie tego modelu polega na podziale zestawu danych treningowych na mniejsze paczki danych, a następnie normalizacje aktywacji poprzez odejmowanie średniej i dzielenie przez odchylenie standardowe mniejszej paczki danych (mini-batch). Po znormalizowaniu, dane są skalowane i przesuwane przy użyciu dwóch parametrów gamma i beta. Wartości te są parametrami trenowanymi podczas uczenia i pozwalają na elastyczną transformację danych. BN działa jak pewnego rodzaju regularyzacja poprzez wprowadzenie szumu do procesu treningu. To zjawisko zapobiega zbytniemu dostosowaniu się modelu do konkretnych danych treningowych. Podsumowując Batch Normalization przyspiesza uczenie - pozwala przy mniejszej liczbie iteracji uzyskać takie same rezultaty jak sieci nieposiadające tej normalizacji. Umożliwia zastosowanie wyższych learning rates bez negatywnych rezultatów oraz pomaga również eliminować overfitting.
 
+\subsection{Wyniki}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{batch_normalization/dokladnosc.png}
+    \caption{Skuteczność modelu z Batch Normalization w zależności od liczby próbek treningowych}
+    \label{fig:data_chart6}
+\end{figure}
+
+Rys. \ref{fig:data_chart6} przedstawia ...
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{batch_normalization/skutecznosc.png}
+    \caption{Skuteczność modelu Batch Normalization od liczby próbek treningowych dla 300 próbek testowych}
+    \label{fig:data_chart7}
+\end{figure}
+
+Rys. \ref{fig:data_chart7} przedstawia ...
+
+
 \section{Sieć rekurencyjna}
 
 \subsection{Wstęp}
@@ -128,13 +146,102 @@ Podczas trenowania sieci rekurencyjnych, algorytm propagacji wstecznej (backprop
 
 Istnieje wiele wariantów sieci rekurencyjnych, takich jak:
 \begin{itemize}
-    \item Standardowe RNNs (Vanilla RNNs): Prosta forma sieci rekurencyjnej, jednak ma problem z długoterminowymi zależnościami, ponieważ może wystąpić zjawisko zanikającego gradientu (vanishing gradient), co powoduje utratę informacji o odległych zależnościach w sekwencji.
-    \item Long Short-Term Memory (LSTM): Jest to ulepszona wersja RNN, która ma zdolność do przechowywania długoterminowych zależności w danych poprzez specjalne bramki, które decydują, które informacje mają zostać zapamiętane i które mają być zapomniane.
-    \item Gated Recurrent Unit (GRU): Podobne do LSTM, GRU ma mniej bramek, co sprawia, że jest bardziej efektywne obliczeniowo, ale może być mniej elastyczne w przechowywaniu długoterminowych zależności w porównaniu z LSTM.
+    \item \textbf{Standardowe RNNs (Vanilla RNNs)}: Prosta forma sieci rekurencyjnej, jednak ma problem z długoterminowymi zależnościami, ponieważ może wystąpić zjawisko zanikającego gradientu (vanishing gradient), co powoduje utratę informacji o odległych zależnościach w sekwencji.
+    \item \textbf{Long Short-Term Memory (LSTM)}: Jest to ulepszona wersja RNN, która ma zdolność do przechowywania długoterminowych zależności w danych poprzez specjalne bramki, które decydują, które informacje mają zostać zapamiętane i które mają być zapomniane.
+    \item \textbf{Gated Recurrent Unit (GRU)}: Podobne do LSTM, GRU ma mniej bramek, co sprawia, że jest bardziej efektywne obliczeniowo, ale może być mniej elastyczne w przechowywaniu długoterminowych zależności w porównaniu z LSTM.
 \end{itemize}
 
 Sieci rekurencyjne są szeroko stosowane w zadaniach przetwarzania języka naturalnego (takich jak tłumaczenie maszynowe, generowanie tekstu), analizy czasowych szeregów, rozpoznawania mowy, generowania muzyki oraz w wielu innych obszarach, gdzie dane posiadają strukturę sekwencyjną. Jednak mają pewne wady, takie jak trudności z równoległym przetwarzaniem, a także problemy z utrzymaniem informacji na długie okresy czasu w standardowych RNNs, które częściowo są rozwiązywane przez bardziej zaawansowane architektury, takie jak LSTM i GRU.
 
-\section{}
+\subsection{Wyniki}
+
+\subsubsection{LSTM}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{lstm/dokladnosc.png}
+    \caption{Skuteczność modelu LSTM w zależności od liczby próbek treningowych}
+    \label{fig:data_chart8}
+\end{figure}
+
+Rys. \ref{fig:data_chart8} przedstawia ...
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{lstm/skutecznosc.png}
+    \caption{Skuteczność modelu LSTM od liczby próbek treningowych dla 300 próbek testowych}
+    \label{fig:data_chart9}
+\end{figure}
+
+Rys. \ref{fig:data_chart9} przedstawia ...
+
+\subsubsection{GRU}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{gru/dokladnosc.png}
+    \caption{Skuteczność modelu GRU w zależności od liczby próbek treningowych}
+    \label{fig:data_chart10}
+\end{figure}
+
+Rys. \ref{fig:data_chart10} przedstawia ...
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{gru/skutecznosc.png}
+    \caption{Skuteczność modelu GRU od liczby próbek treningowych dla 300 próbek testowych}
+    \label{fig:data_chart11}
+\end{figure}
+
+Rys. \ref{fig:data_chart11} przedstawia ...
+
+\section{Sieć konwolucyjna}
+
+\subsection{Wstęp}
+
+Sieci konwolucyjne 1D (Convolutional Neural Networks - CNNs) są odmianą architektury sieci neuronowej, które specjalizują się w przetwarzaniu danych sekwencyjnych, takich jak sygnały czasowe, szeregi czasowe, sekwencje tekstowe itp. Podobnie jak w przypadku klasycznych sieci konwolucyjnych dla danych obrazowych (2D), sieci 1D wykorzystują operacje konwolucji do wyodrębniania cech.
+
+Główne elementy sieci konwolucyjnych 1D to:
+
+\begin{enumerate}
+
+\item \textbf{Warstwy konwolucyjne}: Składają się z zestawu filtrów (jąder konwolucyjnych), które przesuwają się po sekwencji wejściowej w celu wydobycia lokalnych cech. Filtry te są stosowane wzdłuż wymiaru czasowego danych (np. wzdłuż sekwencji tekstu).
+
+\item \textbf{Warstwy poolingowe}: Po warstwach konwolucyjnych często następują warstwy poolingowe, które zmniejszają rozmiar przestrzeni cech, zachowując istotne informacje. Najczęściej używane są warstwy MaxPooling, które wybierają największą wartość z określonych fragmentów danych.
+
+\item \textbf{Warstwy aktywacji}: Po każdej operacji konwolucji lub pooling, stosuje się funkcje aktywacji, takie jak ReLU (Rectified Linear Unit) w celu wprowadzenia nieliniowości i ułatwienia uczenia się modelu.
+
+\item \textbf{Warstwy w pełni połączone (fully connected layers)}: Po przetworzeniu przez warstwy konwolucyjne i poolingowe, w ostatniej części sieci 1D umieszcza się warstwy w pełni połączone, które agregują cechy i dokonują końcowego przetwarzania w celu klasyfikacji lub prognozowania.
+
+\end{enumerate}
+Zastosowania sieci konwolucyjnych 1D obejmują:
+
+\begin{itemize}
+
+\item Analizę szeregów czasowych: Takie jak prognozowanie cen akcji, przetwarzanie sygnałów biomedycznych czy też rozpoznawanie gestów w sygnałach czasowych.
+\item Przetwarzanie języka naturalnego: Wykrywanie emocji w zdaniach, klasyfikacja tekstów czy też generowanie opisów.
+\item Sieci konwolucyjne 1D stanowią skuteczną architekturę do przetwarzania danych sekwencyjnych, ponieważ potrafią wydobywać ważne lokalne cechy i wzorce, co czyni je przydatnymi w wielu dziedzinach analizy danych.
+
+\end{itemize}
+
+\subsection{Wyniki}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{rek/dokladnosc.png}
+    \caption{Skuteczność modelu sieci konwolucyjnej w zależności od liczby próbek treningowych}
+    \label{fig:data_chart12}
+\end{figure}
+
+Rys. \ref{fig:data_chart12} przedstawia ...
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{rek/skutecznosc.png}
+    \caption{Skuteczność modelu sieci konwolucyjnej od liczby próbek treningowych dla 300 próbek testowych}
+    \label{fig:data_chart13}
+\end{figure}
+
+Rys. \ref{fig:data_chart13} przedstawia ...
 
 \end{document}
