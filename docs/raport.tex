@@ -122,7 +122,7 @@ Batch Normalization (BN) to technika stosowana w głębokich sieciach neuronowyc
     \label{fig:data_chart6}
 \end{figure}
 
-Rys. \ref{fig:data_chart6} przedstawia ...
+Rys. \ref{fig:data_chart6} przedstawia skuteczność modelu z Batch Normalization w zależności od liczby próbek treningowych. Punkty na wykresie reprezentują dokładność modelu dla różnych liczb próbek użytych do treningu. Linia pozioma wskazuje na wartość dokładności równej 1.00, która jest teoretycznym maksimum. Na podstawie rozproszenia punktów można zaobserwować, że dokładność modelu generalnie wzrasta wraz z liczebnością próbek, osiągając stabilizację blisko maksymalnej możliwej wartości dokładności. Większość punktów koncentruje się w górnej części wykresu, powyżej wartości dokładności 0.99, co wskazuje na wysoką wydajność modelu. Jednakże, istnieje kilka punktów, które odstają od ogólnej tendencji, gdzie dokładność jest znacząco niższa, szczególnie przy mniejszej liczbie próbek. Te anomalie mogą wskazywać na przypadki, w których model miał trudności z generalizacją na skutek ograniczonej ilości danych lub specyficznych cech danych treningowych. Podsumowując, przedstawione dane sugerują, że model z Batch Normalization osiąga wysoką dokładność w zadaniu klasyfikacyjnym, przy czym efektywność ta stabilizuje się przy większej liczbie próbek.
 
 \begin{figure}[H]
     \centering
@@ -131,7 +131,7 @@ Rys. \ref{fig:data_chart6} przedstawia ...
     \label{fig:data_chart7}
 \end{figure}
 
-Rys. \ref{fig:data_chart7} przedstawia ...
+Rys. \ref{fig:data_chart7} przedstawia skuteczność modelu Batch Normalization od liczby próbek treningowych dla 300 próbek testowych. W kolejnych eksperymentach, gdzie liczba próbek wykorzystanych do treningu wynosi odpowiednio 5, 10, 25 i 150 (ilość próbek dla każdego stanu), obserwujemy progresywną poprawę dokładności klasyfikacji od wartości $\sim$0.5 do $\sim$0.99. Wzrost dokładności jest korelowany z zwiększającą się liczbą próbek treningowych, co jest zgodne z powszechnie akceptowanymi założeniami w dziedzinie uczenia maszynowego. Model BatchNormalization wykazuje większą skuteczność względem omawianej wcześniej prostej sieci FeedForward. Wiąże się to z tym, że model BatchNormalization posiada więcej warstw, co pozwala na lepsze wyodrębnienie cech z danych treningowych. Warstwa normalizacji wsadowej (Batch Normalization) analizuje każdą porcję danych, gdy ta napływa. Najpierw normalizuje partię danych za pomocą własnej średniej i odchylenia standardowego, a następnie dostosowuje dane do nowej skali za pomocą dwóch parametrów przeskalowania, które są trenowalne. W efekcie Batch Normalization wykonuje swoisty rodzaj przeskalowywania swoich wejść.
 
 
 \section{Sieć rekurencyjna}
