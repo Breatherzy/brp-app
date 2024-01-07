@@ -50,6 +50,7 @@ const App = () => {
     activateKeepAwake();
     if (Platform.OS === "android") {
       NativeModules.TFLiteModule.loadModel(6, "ForestModel");
+      NativeModules.TFLiteModule.loadAccModel(6, "ForestModel");
     }
   }, []);
 
