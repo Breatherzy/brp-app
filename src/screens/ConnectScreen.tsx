@@ -212,7 +212,6 @@ const ConnectScreen = () => {
         n = parseInt(matcher_force_only[1]);
         force = parseInt(matcher_force_only[2]);
       }
-
       return { n, temp, force };
     } else {
       console.warn("BLE", "Broken frame received: " + rawInput);
@@ -388,6 +387,8 @@ const ConnectScreen = () => {
   }
 
   useEffect(() => {
+    handleAndroidPermissions();
+
     try {
       BleManager.start({ showAlert: false, forceLegacy: true })
         .then(() => console.debug("BleManager started."))
@@ -415,8 +416,6 @@ const ConnectScreen = () => {
       ),
     ];
 
-    handleAndroidPermissions();
-
     return () => {
       console.debug("[app] main component unmounting. Removing listeners...");
       for (const listener of listeners) {
@@ -426,6 +425,11 @@ const ConnectScreen = () => {
   }, []);
 
   const handleAndroidPermissions = async () => {
+    console.debug("[handleAndroidPermissions] checking permissions...");
+    console.debug(
+      `[handleAndroidPermissions] Platform.OS: ${Platform.OS} Platform.Version: ${Platform.Version}`
+    );
+
     if (Platform.OS === "android" && Platform.Version >= 31) {
       let result = await PermissionsAndroid.requestMultiple([
         PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
@@ -433,11 +437,11 @@ const ConnectScreen = () => {
       ]);
       if (result)
         console.debug(
-          "[handleAndroidPermissions] User accepts runtime permission android >=12"
+          "[handleAndroidPermissions] User accepts BLUETOOTH_SCAN and BLUETOOTH_CONNECT permissions"
         );
       else
         console.error(
-          "[handleAndroidPermissions] User refuses runtime permission android >=12"
+          "[handleAndroidPermissions] User refuses BLUETOOTH_SCAN and BLUETOOTH_CONNECT permissions"
         );
     } else if (Platform.OS === "android" && Platform.Version >= 23) {
       PermissionsAndroid.check(
@@ -445,7 +449,7 @@ const ConnectScreen = () => {
       ).then((checkResult) => {
         if (checkResult) {
           console.debug(
-            "[handleAndroidPermissions] runtime permission Android <12 already OK"
+            "[handleAndroidPermissions] runtime permission ACCESS_FINE_LOCATION already granted"
           );
         } else {
           PermissionsAndroid.request(
@@ -453,11 +457,11 @@ const ConnectScreen = () => {
           ).then((requestResult) => {
             if (requestResult) {
               console.debug(
-                "[handleAndroidPermissions] User accepts runtime permission android <12"
+                "[handleAndroidPermissions] User accepts ACCESS_FINE_LOCATION permission"
               );
             } else {
               console.error(
-                "[handleAndroidPermissions] User refuses runtime permission android <12"
+                "[handleAndroidPermissions] User refuses ACCESS_FINE_LOCATION permission"
               );
             }
           });
@@ -478,14 +482,34 @@ const ConnectScreen = () => {
         });
     }
     if (Platform.OS === "android") {
+      PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      ]).then((result) => {
+        if (result) {
+          console.debug(
+            "[handleAndroidPermissions] User accepts READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE permissions"
+          );
+        } else {
+          console.error(
+            "[handleAndroidPermissions] User refuses READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE permissions"
+          );
+        }
+      });
+
       BleManager.enableBluetooth()
         .then(() => {
           // Success code
-          console.log("The bluetooth is already enabled or the user confirm");
+          console.log(
+            "[handleAndroidPermissions] The bluetooth is already enabled or the user confirm"
+          );
         })
         .catch((error) => {
           // Failure code
-          console.log("The user refuse to enable bluetooth");
+          console.error(
+            "[handleAndroidPermissions] The user refuse to enable bluetooth",
+            error
+          );
         });
     }
   };

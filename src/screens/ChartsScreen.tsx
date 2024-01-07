@@ -66,6 +66,7 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
     normalizedTensPoints = [];
     setTensPointsToDisplay({ values: [], colors: [] });
     setAccPointsToDisplay({ values: [], colors: [] });
+    clearLogs();
   }
 
   const formatTime = (timeInSeconds) => {
@@ -136,9 +137,56 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
     };
   }, [isActive]);
 
+  const logData = async (name) => {
+    try {
+      let logEntry;
+      if (name === "tens" && tensPoints.length > 0) {
+        logEntry = `${tensPoints[tensPoints.length - 1].y}\n`;
+      } else if (name === "acc" && accPoints.length > 0) {
+        logEntry = `${accPoints[accPoints.length - 1].y}\n`;
+      }
+      const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp`;
+      const logFile = logFilePath + `/${name}.txt`;
+
+      const directoryExists = await RNFS.exists(logFilePath);
+
+      if (!directoryExists) {
+        try {
+          await RNFS.mkdir(logFilePath);
+        } catch (mkdirError) {
+          console.error("Failed to create directory:", mkdirError);
+        }
+      }
+
+      const fileExists = await RNFS.exists(logFile);
+
+      if (!fileExists) {
+        await RNFS.writeFile(logFile, "", "utf8");
+      }
+
+      await RNFS.appendFile(logFile, logEntry, "utf8");
+    } catch (error) {
+      console.error(`Failed to log ${name} data`, error);
+    }
+  };
+
+  const clearLogs = async () => {
+    try {
+      const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp`;
+      const directoryExists = await RNFS.exists(logFilePath);
+
+      if (directoryExists) {
+        await RNFS.unlink(logFilePath);
+      }
+    } catch (error) {
+      console.error("Failed to clear logs", error);
+    }
+  };
+
   useEffect(() => {
     try {
       if (isRunning.current) {
+        logData("tens");
         if (tensPoints.length >= RANGE) {
           tensPoints.shift();
         }
@@ -161,6 +209,7 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
   useEffect(() => {
     try {
       if (isRunning.current) {
+        logData("acc");
         if (accPoints.length >= RANGE) {
           accPoints.shift();
         }
@@ -180,12 +229,14 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
 
   async function predictTensData() {
     try {
-      const movingAverageWindowPoints = normalizedTensPoints.slice(-movingAverageWindow);
+      const movingAverageWindowPoints = normalizedTensPoints.slice(
+        -movingAverageWindow
+      );
 
       if (modelName === "ForestModel") {
-        const yValues = movingAverageWindowPoints.map(point => point.y);
+        const yValues = movingAverageWindowPoints.map((point) => point.y);
         const amplitude = Math.max(...yValues) - Math.min(...yValues);
-        movingAverageWindowPoints.push({ "y": amplitude });
+        movingAverageWindowPoints.push({ y: amplitude });
       }
       const prediction = await useTensPrediction(movingAverageWindowPoints);
       let newColor = processColor("green");
@@ -203,7 +254,10 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
 
       setTensPointsToDisplay((prevTensPointsToDisplay) => {
         return {
-          values: [...prevTensPointsToDisplay.values.slice(-CHART_WINDOW + 1), movingAverageWindowPoints[0]],
+          values: [
+            ...prevTensPointsToDisplay.values.slice(-CHART_WINDOW + 1),
+            movingAverageWindowPoints[0],
+          ],
           colors: [
             ...prevTensPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
             newColor,
