@@ -255,6 +255,35 @@ Dodanie nowego modelu sieci wytrenowanego na bazie danych zaklasyfikowanych prze
 
 ---
 
+## [BRP-52-accelerometer-ml-model](https://github.com/Breatherzy/brp-app/pull/10)
+
+### **Opis zmiany**
+
+Dodanie modelu sieci neuronowej obsługującej dane z akcelerometru. 
+
+ ### **Edytowane pliki**
+  + App.tsx
+  + NeuralNetworkModel.tsx
+  + ChartsScreen.tsx
+  + TFLiteModuleJava.java
+
+---
+
+## [BRP-57-saving-incoming-data-from-sensors-to-file](https://github.com/Breatherzy/brp-app/pull/11)
+
+### **Opis zmiany**
+
+Dodanie automatycznego zapisaywania pomiarów do pliku tekstowego. Dodanie dokumentacji do repozytorium projektu.
+
+ ### **Edytowane pliki**
+  + /docs/...
+  + App.tsx
+  + ChartsScreen.tsx
+  + ConnectScreen.java
+  + AndroidManifest.xml
+
+---
+
 ## [brp-debug-plot](https://github.com/Breatherzy/brp-debug-plot)
 
 ## [BRP-19-add-data-for-no-breath](https://github.com/Breatherzy/brp-debug-plot/pull/1)
@@ -287,6 +316,7 @@ Dodanie klasyfikatorów (automatycznych oraz manualnych) danych. Dodanie funkcji
  + plot.py
 
  ---
+
  ## [brp-ml-model](https://github.com/Breatherzy/brp-ml-model)
 
 ## [brp-16-implement-transfer-ml-model](https://github.com/Breatherzy/brp-ml-model/pull/1)
@@ -313,3 +343,24 @@ Dodanie skryptu uczącego lasy losowe na danych po uprzedniej klasyfikacji i nor
  + tensorflow-io-gcs-filesystem==0.34.0
  + tensorflow-macos==2.14.0
  + matplotlib==3.8.2
+
+---
+
+## [brp-data-labelling](https://github.com/Breatherzy/brp-data-labelling)
+
+## [BRP-59-add-data-labelling-script](https://github.com/Breatherzy/brp-data-labelling/pull/1)
+
+### **Opis zmiany**
+
+Dodanie skryptu do ręcznej analizy danych oraz ich klasyfikacja. Skrypt tworzy interaktywny wykres z możliwością zaznaczania niepoprawnie sklasyfikowanych obszarów.
+
+ ### **Edytowane pliki**
+  + labelling.py
+  + docker-compose.yml
+  + start.sh
+
+### **Bibilioteki**
+ + numpy==1.26.1
+ + matplotlib==3.8.2
+ + pandas==2.1.4
+
