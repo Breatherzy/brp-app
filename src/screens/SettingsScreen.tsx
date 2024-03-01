@@ -20,10 +20,12 @@ const SettingsScreen = ({ setPredMargin, setMovingAverage, setStatusBar }) => {
   useEffect(() => {
     if (Platform.OS === "android") {
       if (modelName === "ForestModel") {
-      NativeModules.TFLiteModule.loadModel(sizeOfBuffer+1, modelName);
-    }else{
-      NativeModules.TFLiteModule.loadModel(sizeOfBuffer, modelName);
-    }
+        NativeModules.TFLiteModule.loadModel(sizeOfBuffer + 1, modelName);
+        NativeModules.TFLiteModule.loadAccModel(sizeOfBuffer + 1, modelName);
+      } else {
+        NativeModules.TFLiteModule.loadModel(sizeOfBuffer, modelName);
+        NativeModules.TFLiteModule.loadAccModel(sizeOfBuffer, modelName);
+      }
     }
   }, [sizeOfBuffer, modelName]);
 

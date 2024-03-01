@@ -11,14 +11,16 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAccelerometerData } from "../hooks/useAccelerometerData";
 import { useTensometerData } from "../hooks/useTensometerData";
 import { useUserData } from "../hooks/useUserData";
-import { useTensPrediction, useAccPrediction } from "../components/NeuralNetworkModel";
+import {
+  useTensPrediction,
+  useAccPrediction,
+} from "../components/NeuralNetworkModel";
 
 import RNFS from "react-native-fs";
 
 const RANGE = 300;
 const CHART_WINDOW = 150;
 const TIME_INTERVAL = 25;
-const MOVING_AVG_WINDOW_ACC = 5;
 
 function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
   const { accPoints, setAccPoints } = useAccelerometerData();
@@ -214,11 +216,14 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
           accPoints.shift();
         }
 
-        const smoothedAccPoints = movingAverage(accPoints.slice(-CHART_WINDOW), MOVING_AVG_WINDOW_ACC);
+        const smoothedAccPoints = movingAverage(
+          accPoints.slice(-CHART_WINDOW),
+          movingAverageWindow
+        );
 
         normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
 
-        if (normalizedAccPoints.length > MOVING_AVG_WINDOW_ACC) {
+        if (normalizedAccPoints.length > movingAverageWindow) {
           predictAccData();
         }
       }
@@ -277,10 +282,14 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
 
   async function predictAccData() {
     try {
-      const movingAverageWindowPoints =  normalizedAccPoints.slice(-MOVING_AVG_WINDOW_ACC);
-      const yValues = movingAverageWindowPoints.map(point => point.y);
-      const amplitude = Math.max(...yValues) - Math.min(...yValues);
-      movingAverageWindowPoints.push({ "y": amplitude });
+      const movingAverageWindowPoints = normalizedAccPoints.slice(
+        -movingAverageWindow
+      );
+      if (modelName === "ForestModel") {
+        const yValues = movingAverageWindowPoints.map((point) => point.y);
+        const amplitude = Math.max(...yValues) - Math.min(...yValues);
+        movingAverageWindowPoints.push({ y: amplitude });
+      }
       const prediction = await useAccPrediction(movingAverageWindowPoints);
       let newColor = processColor("green");
       if (prediction && prediction[0]) {
@@ -293,7 +302,10 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
 
       setAccPointsToDisplay((prevAccPointsToDisplay) => {
         return {
-          values: [...prevAccPointsToDisplay.values.slice(-CHART_WINDOW + 1), movingAverageWindowPoints[0]],
+          values: [
+            ...prevAccPointsToDisplay.values.slice(-CHART_WINDOW + 1),
+            movingAverageWindowPoints[0],
+          ],
           colors: [
             ...prevAccPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
             newColor,

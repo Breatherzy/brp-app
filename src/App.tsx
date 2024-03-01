@@ -13,7 +13,7 @@ import ChartsScreen from "./screens/ChartsScreen";
 import StatisticScreen from "./screens/StatisticScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { activateKeepAwake } from '@sayem314/react-native-keep-awake';
+import { activateKeepAwake } from "@sayem314/react-native-keep-awake";
 import AccelerometerDataContext from "./contexts/AccelerometerDataContext";
 import TensometerDataContext from "./contexts/TensometerDataContext";
 import UserDataContext from "./contexts/UserDataContext";
