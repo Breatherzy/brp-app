@@ -9,84 +9,38 @@ import {
 } from "react-native";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 
-const THREE_STATE_MODEL = 0.8;
-const TWO_STATE_MODEL = 0;
-
-const SettingsScreen = ({ setPredMargin, setMovingAverage, setStatusBar }) => {
-  const [isEnabled, setIsEnabled] = useState(true); // if true, 3-state model, else 2-state model
-  const [modelName, setModelName] = useState("ForestModel");
-  const [sizeOfBuffer, setSizeOfBuffer] = useState(5);
+const SettingsScreen = ({ setStatusBar }) => {
+  const [modelName, setModelName] = useState("GRUModel");
 
   useEffect(() => {
     if (Platform.OS === "android") {
-      if (modelName === "ForestModel") {
-        NativeModules.TFLiteModule.loadModel(sizeOfBuffer + 1, modelName);
-        NativeModules.TFLiteModule.loadAccModel(sizeOfBuffer + 1, modelName);
-      } else {
-        NativeModules.TFLiteModule.loadModel(sizeOfBuffer, modelName);
-        NativeModules.TFLiteModule.loadAccModel(sizeOfBuffer, modelName);
-      }
+      NativeModules.TFLiteModule.loadModel(6, `${modelName}_tens`);
+      NativeModules.TFLiteModule.loadAccModel(12, `${modelName}_acc`);
     }
-  }, [sizeOfBuffer, modelName]);
+  }, [modelName]);
 
   useEffect(() => {
     console.log(`Model name: ${modelName}`);
-    console.log(`Size of buffer: ${sizeOfBuffer}`);
-    console.log(`Is 3-state model: ${isEnabled}`);
     setStatusBar({
       selectedModel: modelName,
-      selectedMovingAverage: sizeOfBuffer,
-      selectedNumberOfStates: isEnabled ? 3 : 2,
     });
-  }, [modelName, sizeOfBuffer, isEnabled]);
+  }, [modelName]);
 
-  useEffect(() => {
-    setPredMargin(isEnabled ? THREE_STATE_MODEL : TWO_STATE_MODEL);
-  }, [isEnabled]);
-
-  const handleModelSelection = (name, movingAverage) => {
+  const handleModelSelection = (name) => {
     setModelName(name);
-    setMovingAverage(movingAverage);
-    setSizeOfBuffer(movingAverage);
   };
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={() => setIsEnabled(!isEnabled)} style={styles.Button}>
-        <Text style={styles.ButtonText}>
-          {isEnabled ? "3-state model" : "2-state model"}
-        </Text>
-      </Pressable>
       <Text style={styles.Text}>Select model type:</Text>
-
       <Pressable
-        onPress={() => handleModelSelection("StateModel", 5)}
+        onPress={() => handleModelSelection("GRUModel")}
         style={[
           styles.Button,
-          modelName === "StateModel" && { backgroundColor: "#069400" },
+          modelName === "GRUModel" && { backgroundColor: "#069400" },
         ]}
       >
-        <Text style={styles.ButtonText}>State Model</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => handleModelSelection("MonoModel", 10)}
-        style={[
-          styles.Button,
-          modelName === "MonoModel" && { backgroundColor: "#069400" },
-        ]}
-      >
-        <Text style={styles.ButtonText}>Mono Model</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => handleModelSelection("ForestModel", 5)}
-        style={[
-          styles.Button,
-          modelName === "ForestModel" && { backgroundColor: "#069400" },
-        ]}
-      >
-        <Text style={styles.ButtonText}>Forest Model</Text>
+        <Text style={styles.ButtonText}>GRUModel</Text>
       </Pressable>
     </View>
   );

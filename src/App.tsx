@@ -66,15 +66,13 @@ const App = () => {
                   {() => <ChartsScreen modelName={statusBar.selectedModel} />}
                 </Tab.Screen>
                 <Tab.Screen name="Statistics" component={StatisticScreen} />
-                {/* <Tab.Screen name="Settings">
+                <Tab.Screen name="Settings">
                   {() => (
                     <SettingsScreen
-                      setPredMargin={setPredMargin}
-                      setMovingAverage={setMovingAverage}
                       setStatusBar={setStatusBar}
                     />
                   )}
-                </Tab.Screen> */}
+                </Tab.Screen>
               </Tab.Navigator>
             </NavigationContainer>
           </UserDataContext.Provider>
