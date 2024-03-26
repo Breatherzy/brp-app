@@ -25,8 +25,7 @@ const StatusBarComponent = ({ statusBar }) => {
   return (
     <View style={styles.statusBarContainer}>
       <Text style={styles.statusBarText}>
-        Model: {statusBar.selectedModel} | States:{" "}
-        {statusBar.selectedNumberOfStates}
+        Model: {statusBar.selectedModel}
       </Text>
     </View>
   );
@@ -39,14 +38,13 @@ const App = () => {
   const [breathAmount, setBreathAmount] = useState(0);
   const [statusBar, setStatusBar] = useState({
     selectedModel: "GRUModel",
-    selectedNumberOfStates: 3,
   });
 
   useEffect(() => {
     activateKeepAwake();
     if (Platform.OS === "android") {
-      NativeModules.TFLiteModule.loadModel(6, "GRUModelTens");
-      NativeModules.TFLiteModule.loadAccModel(12, "GRUModelAcc");
+      NativeModules.TFLiteModule.loadModel(6, "GRUModel_tens");
+      NativeModules.TFLiteModule.loadAccModel(12, "GRUModel_acc");
     }
   }, []);
 

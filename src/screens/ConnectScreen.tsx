@@ -27,7 +27,8 @@ const ACC_SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
 const ACC_CHARACTERISTIC_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
 const TENS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const TENS_CHARACTERISTIC_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
-const SERVICE_UUIDS: string[] = [ACC_SERVICE_UUID, TENS_SERVICE_UUID, INODE_SERVICE_UUID];
+const SERVICE_UUIDS: string[] = [];
+const ALLOWED_NAMES: string[] = ["FT7", "WT901BLE68", "iNode-F18E18"];
 const ALLOW_DUPLICATES = false;
 
 import BleManager, {
@@ -66,7 +67,9 @@ const ConnectScreen = () => {
   const addOrUpdatePeripheral = (id: string, updatedPeripheral: Peripheral) => {
     // new Map() enables changing the reference & refreshing UI.
     // TOFIX not efficient.
-    setPeripherals((map) => new Map(map.set(id, updatedPeripheral)));
+    if (ALLOWED_NAMES.includes(updatedPeripheral.name)) {
+      setPeripherals((map) => new Map(map.set(id, updatedPeripheral)));
+    }
   };
 
   const startScan = () => {
