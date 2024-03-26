@@ -24,9 +24,7 @@ const Tab = createMaterialTopTabNavigator();
 const StatusBarComponent = ({ statusBar }) => {
   return (
     <View style={styles.statusBarContainer}>
-      <Text style={styles.statusBarText}>
-        Model: {statusBar.selectedModel}
-      </Text>
+      <Text style={styles.statusBarText}>Model: {statusBar.selectedModel}</Text>
     </View>
   );
 };
@@ -36,15 +34,16 @@ const App = () => {
   const [tensPoints, setTensPoints] = useState([]);
   const [seconds, setSeconds] = useState(0);
   const [breathAmount, setBreathAmount] = useState(0);
+  const [modelName, setModelName] = useState("GRUModel");
   const [statusBar, setStatusBar] = useState({
-    selectedModel: "GRUModel",
+    selectedModel: modelName,
   });
 
   useEffect(() => {
     activateKeepAwake();
     if (Platform.OS === "android") {
-      NativeModules.TFLiteModule.loadModel(6, "GRUModel_tens");
-      NativeModules.TFLiteModule.loadAccModel(12, "GRUModel_acc");
+      NativeModules.TFLiteModule.loadModel(6, `${modelName}_tens`);
+      NativeModules.TFLiteModule.loadAccModel(12, `${modelName}_acc`);
     }
   }, []);
 
@@ -68,6 +67,8 @@ const App = () => {
                   {() => (
                     <SettingsScreen
                       setStatusBar={setStatusBar}
+                      modelName={modelName}
+                      setModelName={setModelName}
                     />
                   )}
                 </Tab.Screen>

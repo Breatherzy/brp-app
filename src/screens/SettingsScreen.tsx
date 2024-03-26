@@ -9,9 +9,7 @@ import {
 } from "react-native";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 
-const SettingsScreen = ({ setStatusBar }) => {
-  const [modelName, setModelName] = useState("GRUModel");
-
+const SettingsScreen = ({ setStatusBar, modelName, setModelName }) => {
   useEffect(() => {
     if (Platform.OS === "android") {
       NativeModules.TFLiteModule.loadModel(6, `${modelName}_tens`);
@@ -41,6 +39,15 @@ const SettingsScreen = ({ setStatusBar }) => {
         ]}
       >
         <Text style={styles.ButtonText}>GRUModel</Text>
+      </Pressable>
+      <Pressable
+        onPress={() => handleModelSelection("LSTMModel")}
+        style={[
+          styles.Button,
+          modelName === "LSTMModel" && { backgroundColor: "#069400" },
+        ]}
+      >
+        <Text style={styles.ButtonText}>LSTMModel</Text>
       </Pressable>
     </View>
   );
