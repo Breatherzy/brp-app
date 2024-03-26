@@ -109,8 +109,10 @@ dependencies {
     implementation project(':react-native-fs')
 
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
-    implementation("org.tensorflow:tensorflow-lite:2.6.0")
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.0")
+    // This dependency adds the necessary TF op support.
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
     debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {

@@ -26,8 +26,6 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
   private Interpreter tfliteAcc;
   private TensorBuffer inputBufferAcc;
   private TensorBuffer outputBufferAcc;
-  private float[] inputArray5 = new float[5];
-  private float[] inputArray10 = new float[10];
 
   public TFLiteModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -82,7 +80,7 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
         );
       outputBufferAcc =
         TensorBuffer.createFixedSize(
-          tflite.getOutputTensor(0).shape(),
+          tfliteAcc.getOutputTensor(0).shape(),
           DataType.FLOAT32
         );
 
@@ -120,7 +118,7 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
     // Load data into TensorBuffer
     inputBuffer.loadArray(inputArray);
 
-    // Prepare output buffer assuming the output is a single float value
+    // Prepare output buffer
     float[] outputData = new float[tflite.getOutputTensor(0).shape()[1]];
     Arrays.fill(outputData, 0);
     outputBuffer.loadArray(outputData);
@@ -128,13 +126,22 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
     // Run the prediction
     tflite.run(inputBuffer.getBuffer(), outputBuffer.getBuffer());
 
-    // Return the result
-    promise.resolve(outputBuffer.getFloatValue(0));
+    int maxIndex = 0;
+    float maxValue = outputBuffer.getFloatValue(0);
+    for (int i = 1; i < outputData.length; i++) {
+      if (outputBuffer.getFloatValue(i) > maxValue) {
+        maxValue = outputBuffer.getFloatValue(i);
+        maxIndex = i;
+      }
+    }
+
+    // Return the index of the maximum value
+    promise.resolve(maxIndex - 1);
   }
 
   @ReactMethod
   public void predictAcc(ReadableArray variables, Promise promise) {
-    if (tflite == null) {
+    if (tfliteAcc == null) {
       promise.reject(
         "MODEL_NOT_LOADED",
         "Model not loaded. Make sure to call loadAccModel() first."
@@ -160,62 +167,25 @@ public class TFLiteModule extends ReactContextBaseJavaModule {
     // Load data into TensorBuffer
     inputBufferAcc.loadArray(inputArray);
 
-    // Prepare output buffer assuming the output is a single float value
-    float[] outputData = new float[tflite.getOutputTensor(0).shape()[1]];
+    // Prepare output buffer
+    float[] outputData = new float[tfliteAcc.getOutputTensor(0).shape()[1]];
     Arrays.fill(outputData, 0);
     outputBufferAcc.loadArray(outputData);
 
     // Run the prediction
-    tflite.run(inputBufferAcc.getBuffer(), outputBufferAcc.getBuffer());
+    tfliteAcc.run(inputBufferAcc.getBuffer(), outputBufferAcc.getBuffer());
 
-    // Return the result
-    promise.resolve(outputBufferAcc.getFloatValue(0));
-  }
-
-  @ReactMethod
-  public void predict(
-    float variable1,
-    float variable2,
-    float variable3,
-    float variable4,
-    float variable5,
-    float variable6,
-    float variable7,
-    float variable8,
-    float variable9,
-    float variable10,
-    Promise promise
-  ) {
-    if (tflite == null) {
-      promise.reject(
-        "MODEL_NOT_LOADED",
-        "Model not loaded. Make sure to call loadModel() first."
-      );
-      return;
+    int maxIndex = 0;
+    float maxValue = outputBufferAcc.getFloatValue(0);
+    for (int i = 1; i < outputData.length; i++) {
+      if (outputBufferAcc.getFloatValue(i) > maxValue) {
+        maxValue = outputBufferAcc.getFloatValue(i);
+        maxIndex = i;
+      }
     }
 
-    // Set values for the inputArray
-    inputArray10[0] = variable1;
-    inputArray10[1] = variable2;
-    inputArray10[2] = variable3;
-    inputArray10[3] = variable4;
-    inputArray10[4] = variable5;
-    inputArray10[5] = variable6;
-    inputArray10[6] = variable7;
-    inputArray10[7] = variable8;
-    inputArray10[8] = variable9;
-    inputArray10[9] = variable10;
-
-    // Load data into TensorBuffer
-    inputBuffer.loadArray(inputArray10);
-
-    float[] emptyData = new float[tflite.getOutputTensor(0).shape()[1]];
-    Arrays.fill(emptyData, 0);
-    outputBuffer.loadArray(emptyData);
-
-    tflite.run(inputBuffer.getBuffer(), outputBuffer.getBuffer());
-
-    promise.resolve(outputBuffer.getFloatValue(0));
+    // Return the index of the maximum value
+    promise.resolve(maxIndex - 1);
   }
 
   private MappedByteBuffer loadModelFile(String nameOfTheModel)

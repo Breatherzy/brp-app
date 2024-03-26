@@ -20,9 +20,12 @@ import RNFS from "react-native-fs";
 
 const RANGE = 300;
 const CHART_WINDOW = 150;
-const TIME_INTERVAL = 25;
+const TIME_INTERVAL_TENS = 100;
+const TIME_INTERVAL_ACC = 45;
+const MOVING_TENS_WINDOW = 5;
+const MOVING_ACC_WINDOW = 11;
 
-function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
+function ChartsScreen({ modelName }) {
   const { accPoints, setAccPoints } = useAccelerometerData();
   const { tensPoints, setTensPoints } = useTensometerData();
   const { seconds, setSeconds } = useUserData();
@@ -77,15 +80,15 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
-  async function readDemoData() {
+  async function readDemoData(filename, interval) {
     try {
       let content;
       setIsPlaying(true);
       if (Platform.OS === "ios") {
-        const filePath = `${RNFS.MainBundlePath}/debug3.txt`;
+        const filePath = `${RNFS.MainBundlePath}/${filename}.txt`;
         content = await RNFS.readFile(filePath, "utf8");
       } else if (Platform.OS === "android") {
-        const assetPath = "debug3.txt";
+        const assetPath = `${filename}.txt`;
         content = await RNFS.readFileAssets(assetPath, "utf8");
       }
       isRunning.current = true;
@@ -95,24 +98,23 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
       for (let line of lines) {
         while (!isRunning.current) {
           await new Promise<void>((resolve) => setTimeout(resolve, 500));
-          console.log("waiting");
+          console.log(`[readDemoData ${filename}] waiting`);
           if (reset.current) {
-            console.log("reset while waiting");
+            console.log(`[readDemoData ${filename}] reset while waiting`);
             break;
           }
         }
         if (reset.current) {
-          console.log("reset while reading");
+          console.log(`[readDemoData ${filename}] reset while reading`);
+          await new Promise<void>((resolve) => setTimeout(resolve, 200));
           reset.current = false;
           break;
         }
-        await new Promise<void>((resolve) =>
-          setTimeout(resolve, TIME_INTERVAL)
-        );
-        const match = line.match(/Punkt y:(\d+\.\d+)/);
-        if (match && match[1]) {
-          let yValue = parseFloat(match[1]);
+        await new Promise<void>((resolve) => setTimeout(resolve, interval));
+        let yValue = parseFloat(line);
+        if (filename.includes("tens")) {
           setTensPoints((tensPoints) => [...tensPoints, { y: yValue }]);
+        } else if (filename.includes("acc")) {
           setAccPoints((accPoints) => [...accPoints, { y: yValue }]);
         }
       }
@@ -120,7 +122,10 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
       setIsActive(isRunning.current);
       setIsPlaying(false);
     } catch (error) {
-      console.error("Failed to read from file", error);
+      console.error(
+        `[readDemoData ${filename}] Failed to read from file`,
+        error
+      );
     }
   }
 
@@ -142,10 +147,13 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
   const logData = async (name) => {
     try {
       let logEntry;
+      let currentTimestamp = new Date().toISOString();
       if (name === "tens" && tensPoints.length > 0) {
-        logEntry = `${tensPoints[tensPoints.length - 1].y}\n`;
+        logEntry = `${currentTimestamp},${
+          tensPoints[tensPoints.length - 1].y
+        }\n`;
       } else if (name === "acc" && accPoints.length > 0) {
-        logEntry = `${accPoints[accPoints.length - 1].y}\n`;
+        logEntry = `${currentTimestamp},${accPoints[accPoints.length - 1].y}\n`;
       }
       const logFilePath = `${RNFS.DownloadDirectoryPath}/BrpApp`;
       const logFile = logFilePath + `/${name}.txt`;
@@ -194,13 +202,19 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
         }
 
         const smoothedTensPoints = movingAverage(
-          tensPoints.slice(-CHART_WINDOW)
+          tensPoints.slice(-CHART_WINDOW),
+          MOVING_TENS_WINDOW
         );
 
         normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
 
-        if (normalizedTensPoints.length > movingAverageWindow) {
-          predictTensData();
+        if (normalizedTensPoints.length > MOVING_TENS_WINDOW) {
+          predictData(
+            normalizedTensPoints,
+            useTensPrediction,
+            MOVING_TENS_WINDOW,
+            setTensPointsToDisplay
+          );
         }
       }
     } catch (error) {
@@ -218,13 +232,18 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
 
         const smoothedAccPoints = movingAverage(
           accPoints.slice(-CHART_WINDOW),
-          movingAverageWindow
+          MOVING_ACC_WINDOW
         );
 
         normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
 
-        if (normalizedAccPoints.length > movingAverageWindow) {
-          predictAccData();
+        if (normalizedAccPoints.length > MOVING_ACC_WINDOW) {
+          predictData(
+            normalizedAccPoints,
+            useAccPrediction,
+            MOVING_ACC_WINDOW,
+            setAccPointsToDisplay
+          );
         }
       }
     } catch (error) {
@@ -232,45 +251,47 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
     }
   }, [accPoints]);
 
-  async function predictTensData() {
+  async function predictData(
+    normalizedPoints,
+    usePrediction,
+    window,
+    setPointsToDisplay
+  ) {
     try {
-      const movingAverageWindowPoints = normalizedTensPoints.slice(
-        -movingAverageWindow
-      );
-
-      if (modelName === "ForestModel") {
-        const yValues = movingAverageWindowPoints.map((point) => point.y);
-        const amplitude = Math.max(...yValues) - Math.min(...yValues);
-        movingAverageWindowPoints.push({ y: amplitude });
-      }
-      const prediction = await useTensPrediction(movingAverageWindowPoints);
+      const movingAverageWindowPoints = normalizedPoints.slice(-window);
+      const yValues = movingAverageWindowPoints.map((point) => point.y);
+      const amplitude = Math.max(...yValues) - Math.min(...yValues);
+      movingAverageWindowPoints.push({ y: amplitude });
+      const prediction = await usePrediction(movingAverageWindowPoints);
       let newColor = processColor("green");
       if (prediction && prediction[0]) {
-        if (prediction[0] > predMargin) {
+        if (prediction[0] == 1) {
           newColor = processColor("red");
-          setBreathInState(true);
-        } else if (prediction[0] < -predMargin) {
+          if (window == MOVING_TENS_WINDOW) {
+            setBreathInState(true);
+          }
+        } else if (prediction[0] == -1) {
           newColor = processColor("blue");
-          if (wasBreathIn) {
+          if (wasBreathIn && window == MOVING_TENS_WINDOW) {
             setBreathOutState(true);
           }
         }
       }
 
-      setTensPointsToDisplay((prevTensPointsToDisplay) => {
+      setPointsToDisplay((prevPointsToDisplay) => {
         return {
           values: [
-            ...prevTensPointsToDisplay.values.slice(-CHART_WINDOW + 1),
+            ...prevPointsToDisplay.values.slice(-CHART_WINDOW + 1),
             movingAverageWindowPoints[0],
           ],
           colors: [
-            ...prevTensPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
+            ...prevPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
             newColor,
           ],
         };
       });
 
-      if (wasBreathIn && wasBreathOut) {
+      if (wasBreathIn && wasBreathOut && window == MOVING_TENS_WINDOW) {
         setBreathAmount((prevBreathsAmount) => prevBreathsAmount + 1);
         setBreathInState(false);
         setBreathOutState(false);
@@ -280,44 +301,7 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
     }
   }
 
-  async function predictAccData() {
-    try {
-      const movingAverageWindowPoints = normalizedAccPoints.slice(
-        -movingAverageWindow
-      );
-      if (modelName === "ForestModel") {
-        const yValues = movingAverageWindowPoints.map((point) => point.y);
-        const amplitude = Math.max(...yValues) - Math.min(...yValues);
-        movingAverageWindowPoints.push({ y: amplitude });
-      }
-      const prediction = await useAccPrediction(movingAverageWindowPoints);
-      let newColor = processColor("green");
-      if (prediction && prediction[0]) {
-        if (prediction[0] > predMargin) {
-          newColor = processColor("red");
-        } else if (prediction[0] < -predMargin) {
-          newColor = processColor("blue");
-        }
-      }
-
-      setAccPointsToDisplay((prevAccPointsToDisplay) => {
-        return {
-          values: [
-            ...prevAccPointsToDisplay.values.slice(-CHART_WINDOW + 1),
-            movingAverageWindowPoints[0],
-          ],
-          colors: [
-            ...prevAccPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
-            newColor,
-          ],
-        };
-      });
-    } catch (error) {
-      console.error("Failed to predict", error);
-    }
-  }
-
-  function movingAverage(data: string | any[], n = movingAverageWindow) {
+  function movingAverage(data: string | any[], n: number) {
     let result = [];
     for (let i = 0; i < data.length; i++) {
       if (i < n - 1) {
@@ -359,7 +343,10 @@ function ChartsScreen({ predMargin, movingAverageWindow, modelName }) {
         </View>
         <View style={styles.buttons}>
           <TouchableOpacity
-            onPress={() => readDemoData()}
+            onPress={() => {
+              readDemoData("acc_test", TIME_INTERVAL_ACC),
+                readDemoData("tens_test", TIME_INTERVAL_TENS);
+            }}
             style={styles.demoChartStyle}
             disabled={isPlaying}
           >

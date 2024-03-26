@@ -25,8 +25,7 @@ const StatusBarComponent = ({ statusBar }) => {
   return (
     <View style={styles.statusBarContainer}>
       <Text style={styles.statusBarText}>
-        Model: {statusBar.selectedModel} | Moving Average:{" "}
-        {statusBar.selectedMovingAverage} | States:{" "}
+        Model: {statusBar.selectedModel} | States:{" "}
         {statusBar.selectedNumberOfStates}
       </Text>
     </View>
@@ -38,19 +37,16 @@ const App = () => {
   const [tensPoints, setTensPoints] = useState([]);
   const [seconds, setSeconds] = useState(0);
   const [breathAmount, setBreathAmount] = useState(0);
-  const [predMargin, setPredMargin] = useState(0.5);
-  const [movingAverage, setMovingAverage] = useState(5);
   const [statusBar, setStatusBar] = useState({
-    selectedModel: "ForestModel",
-    selectedMovingAverage: 5,
+    selectedModel: "GRUModel",
     selectedNumberOfStates: 3,
   });
 
   useEffect(() => {
     activateKeepAwake();
     if (Platform.OS === "android") {
-      NativeModules.TFLiteModule.loadModel(6, "ForestModel");
-      NativeModules.TFLiteModule.loadAccModel(6, "ForestModel");
+      NativeModules.TFLiteModule.loadModel(6, "GRUModelTens");
+      NativeModules.TFLiteModule.loadAccModel(12, "GRUModelAcc");
     }
   }, []);
 
@@ -67,16 +63,10 @@ const App = () => {
               <Tab.Navigator>
                 <Tab.Screen name="Connect" component={ConnectScreen} />
                 <Tab.Screen name="Charts">
-                  {() => (
-                    <ChartsScreen
-                      predMargin={predMargin}
-                      movingAverageWindow={movingAverage}
-                      modelName={statusBar.selectedModel}
-                    />
-                  )}
+                  {() => <ChartsScreen modelName={statusBar.selectedModel} />}
                 </Tab.Screen>
                 <Tab.Screen name="Statistics" component={StatisticScreen} />
-                <Tab.Screen name="Settings">
+                {/* <Tab.Screen name="Settings">
                   {() => (
                     <SettingsScreen
                       setPredMargin={setPredMargin}
@@ -84,7 +74,7 @@ const App = () => {
                       setStatusBar={setStatusBar}
                     />
                   )}
-                </Tab.Screen>
+                </Tab.Screen> */}
               </Tab.Navigator>
             </NavigationContainer>
           </UserDataContext.Provider>
