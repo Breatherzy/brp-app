@@ -13,7 +13,7 @@ import ChartsScreen from "./screens/ChartsScreen";
 import StatisticScreen from "./screens/StatisticScreen";
 import { NavigationContainer } from "@react-navigation/native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { activateKeepAwake } from '@sayem314/react-native-keep-awake';
+import { activateKeepAwake } from "@sayem314/react-native-keep-awake";
 import AccelerometerDataContext from "./contexts/AccelerometerDataContext";
 import TensometerDataContext from "./contexts/TensometerDataContext";
 import UserDataContext from "./contexts/UserDataContext";
@@ -24,11 +24,7 @@ const Tab = createMaterialTopTabNavigator();
 const StatusBarComponent = ({ statusBar }) => {
   return (
     <View style={styles.statusBarContainer}>
-      <Text style={styles.statusBarText}>
-        Model: {statusBar.selectedModel} | Moving Average:{" "}
-        {statusBar.selectedMovingAverage} | States:{" "}
-        {statusBar.selectedNumberOfStates}
-      </Text>
+      <Text style={styles.statusBarText}>Model: {statusBar.selectedModel}</Text>
     </View>
   );
 };
@@ -38,19 +34,16 @@ const App = () => {
   const [tensPoints, setTensPoints] = useState([]);
   const [seconds, setSeconds] = useState(0);
   const [breathAmount, setBreathAmount] = useState(0);
-  const [predMargin, setPredMargin] = useState(0.5);
-  const [movingAverage, setMovingAverage] = useState(5);
+  const [modelName, setModelName] = useState("GRUModel");
   const [statusBar, setStatusBar] = useState({
-    selectedModel: "ForestModel",
-    selectedMovingAverage: 5,
-    selectedNumberOfStates: 3,
+    selectedModel: modelName,
   });
 
   useEffect(() => {
     activateKeepAwake();
     if (Platform.OS === "android") {
-      NativeModules.TFLiteModule.loadModel(6, "ForestModel");
-      NativeModules.TFLiteModule.loadAccModel(6, "ForestModel");
+      NativeModules.TFLiteModule.loadModel(6, `${modelName}_tens`);
+      NativeModules.TFLiteModule.loadAccModel(12, `${modelName}_acc`);
     }
   }, []);
 
@@ -67,21 +60,15 @@ const App = () => {
               <Tab.Navigator>
                 <Tab.Screen name="Connect" component={ConnectScreen} />
                 <Tab.Screen name="Charts">
-                  {() => (
-                    <ChartsScreen
-                      predMargin={predMargin}
-                      movingAverageWindow={movingAverage}
-                      modelName={statusBar.selectedModel}
-                    />
-                  )}
+                  {() => <ChartsScreen modelName={statusBar.selectedModel} />}
                 </Tab.Screen>
                 <Tab.Screen name="Statistics" component={StatisticScreen} />
                 <Tab.Screen name="Settings">
                   {() => (
                     <SettingsScreen
-                      setPredMargin={setPredMargin}
-                      setMovingAverage={setMovingAverage}
                       setStatusBar={setStatusBar}
+                      modelName={modelName}
+                      setModelName={setModelName}
                     />
                   )}
                 </Tab.Screen>
