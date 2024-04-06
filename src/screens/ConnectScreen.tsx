@@ -138,17 +138,17 @@ const ConnectScreen = () => {
     // );
     if (data.service == ACC_SERVICE_UUID) {
       const accelerometerValue = computeAccelerometerValue(data);
-      setAccPoints((prevData) => [...prevData, { y: accelerometerValue, x: (new Date().getTime() - startTime)/1000}]);
+      setAccPoints((prevData) => [...prevData, { y: accelerometerValue, x: 0}]);
     } else if (data.service == TENS_SERVICE_UUID) {
       const tensometerData = computeTensometerValue(data);
       if (tensometerData && typeof tensometerData.force === "number") {
-        setTensPoints((prevData) => [...prevData, { y: tensometerData.force, x: (new Date().getTime() - startTime)/1000}]);
+        setTensPoints((prevData) => [...prevData, { y: tensometerData.force, x: 0}]);
       } else {
         console.error("Failed to compute tensometer value.");
       }
     } else if (data.service == INODE_SERVICE_UUID) {
       const inodeData = computeInodeValue(data);
-      setAccPoints((prevData) => [...prevData, { y: inodeData, x: new Date().getTime()}]);
+      setAccPoints((prevData) => [...prevData, { y: inodeData, x: 0}]);
     }
   };
 

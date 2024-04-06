@@ -49,10 +49,12 @@ function ChartsScreen({ modelName }) {
   const [isActive, setIsActive] = useState(false);
   const [wasBreathIn, setBreathInState] = useState(false);
   const [wasBreathOut, setBreathOutState] = useState(false);
+  const [start_time, setStartTime] = useState(new Date().getTime());
 
   function startChart() {
     isRunning.current = !isRunning.current;
     setIsActive(isRunning.current);
+    setStartTime(new Date().getTime());
   }
 
   async function sleep(ms) {
@@ -73,6 +75,7 @@ function ChartsScreen({ modelName }) {
     setTensPointsToDisplay({ values: [], colors: [] });
     setAccPointsToDisplay({ values: [], colors: [] });
     clearLogs();
+    setStartTime(new Date().getTime());
   }
 
   const formatTime = (timeInSeconds) => {
@@ -209,7 +212,8 @@ function ChartsScreen({ modelName }) {
           MOVING_TENS_WINDOW
         );
 
-        normalizedTensPoints = handleNaN(normalize(tensPoints.slice(-CHART_WINDOW_TENS)));
+        normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
+        normalizedTensPoints[normalizedTensPoints.length - 1].x = new Date().getTime() - start_time;
         if (normalizedTensPoints.length > MOVING_TENS_WINDOW) {
           predictData(
             normalizedTensPoints,
@@ -239,7 +243,7 @@ function ChartsScreen({ modelName }) {
         );
 
         normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
-
+        normalizedAccPoints[normalizedAccPoints.length - 1].x = new Date().getTime() - start_time;
         if (normalizedAccPoints.length > MOVING_ACC_WINDOW) {
           predictData(
             normalizedAccPoints,
