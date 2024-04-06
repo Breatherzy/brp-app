@@ -19,9 +19,10 @@ import {
 import RNFS from "react-native-fs";
 
 const RANGE = 300;
-const CHART_WINDOW = 150;
-const TIME_INTERVAL_TENS = 100;
-const TIME_INTERVAL_ACC = 45;
+const CHART_WINDOW_TENS = 150;
+const CHART_WINDOW_ACC = 375;
+const TIME_INTERVAL_TENS = 175;
+const TIME_INTERVAL_ACC = 40;
 const MOVING_TENS_WINDOW = 5;
 const MOVING_ACC_WINDOW = 11;
 
@@ -111,11 +112,13 @@ function ChartsScreen({ modelName }) {
           break;
         }
         await new Promise<void>((resolve) => setTimeout(resolve, interval));
-        let yValue = parseFloat(line);
+        const line_list = line.split(",");
+        let yValue = parseFloat(line_list[1]);
+        let time = parseFloat(line_list[0]);
         if (filename.includes("tens")) {
-          setTensPoints((tensPoints) => [...tensPoints, { y: yValue }]);
+          setTensPoints((tensPoints) => [...tensPoints, { y: yValue, x: time}]);
         } else if (filename.includes("acc")) {
-          setAccPoints((accPoints) => [...accPoints, { y: yValue }]);
+          setAccPoints((accPoints) => [...accPoints, { y: yValue, x: time}]);
         }
       }
       isRunning.current = false;
@@ -202,18 +205,18 @@ function ChartsScreen({ modelName }) {
         }
 
         const smoothedTensPoints = movingAverage(
-          tensPoints.slice(-CHART_WINDOW),
+          tensPoints.slice(-CHART_WINDOW_TENS),
           MOVING_TENS_WINDOW
         );
 
-        normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
-
+        normalizedTensPoints = handleNaN(normalize(tensPoints.slice(-CHART_WINDOW_TENS)));
         if (normalizedTensPoints.length > MOVING_TENS_WINDOW) {
           predictData(
             normalizedTensPoints,
             useTensPrediction,
             MOVING_TENS_WINDOW,
-            setTensPointsToDisplay
+            setTensPointsToDisplay,
+            CHART_WINDOW_TENS
           );
         }
       }
@@ -231,7 +234,7 @@ function ChartsScreen({ modelName }) {
         }
 
         const smoothedAccPoints = movingAverage(
-          accPoints.slice(-CHART_WINDOW),
+          accPoints.slice(-CHART_WINDOW_ACC),
           MOVING_ACC_WINDOW
         );
 
@@ -242,7 +245,8 @@ function ChartsScreen({ modelName }) {
             normalizedAccPoints,
             useAccPrediction,
             MOVING_ACC_WINDOW,
-            setAccPointsToDisplay
+            setAccPointsToDisplay,
+            CHART_WINDOW_ACC
           );
         }
       }
@@ -255,7 +259,8 @@ function ChartsScreen({ modelName }) {
     normalizedPoints,
     usePrediction,
     window,
-    setPointsToDisplay
+    setPointsToDisplay,
+    chart_size,
   ) {
     try {
       const movingAverageWindowPoints = normalizedPoints.slice(-window);
@@ -281,11 +286,10 @@ function ChartsScreen({ modelName }) {
       setPointsToDisplay((prevPointsToDisplay) => {
         return {
           values: [
-            ...prevPointsToDisplay.values.slice(-CHART_WINDOW + 1),
-            movingAverageWindowPoints[0],
+            ...normalizedPoints
           ],
           colors: [
-            ...prevPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
+            ...prevPointsToDisplay.colors.slice(-chart_size + 1),
             newColor,
           ],
         };
@@ -313,7 +317,7 @@ function ChartsScreen({ modelName }) {
         for (let j = 0; j < n; j++) {
           sum += data[i - j].y;
         }
-        result.push({ y: sum / n });
+        result.push({ y: sum / n, x: data[i].x });
       }
     }
     return result;
@@ -323,13 +327,13 @@ function ChartsScreen({ modelName }) {
     let maxY = Math.max(...data.map((p: { y: any }) => p.y));
     let minY = Math.min(...data.map((p: { y: any }) => p.y));
     return data.map((point) => ({
-      y: (2 * (point.y - minY)) / (maxY - minY) - 1,
+      y: (2 * (point.y - minY)) / (maxY - minY) - 1, x: point.x
     }));
   }
 
   function handleNaN(data, defaultValue = 0) {
     return data.map((point) => ({
-      y: isNaN(point.y) ? defaultValue : point.y,
+      y: isNaN(point.y) ? defaultValue : point.y, x: point.x
     }));
   }
 
@@ -387,7 +391,10 @@ function ChartsScreen({ modelName }) {
         <LineChart
           legend={{ enabled: false }}
           chartDescription={{ text: "Tensometer" }}
-          style={{ flex: 1 }}
+          style={{ flex: 1 }} 
+          group="sensors"
+          syncX={true}
+          syncY={true}   
           data={{
             dataSets: [
               {
@@ -409,6 +416,9 @@ function ChartsScreen({ modelName }) {
           legend={{ enabled: false }}
           chartDescription={{ text: "Accelerometer" }}
           style={{ flex: 1 }}
+          group="sensors"
+          syncX={true}
+          syncY={true}
           data={{
             dataSets: [
               {
