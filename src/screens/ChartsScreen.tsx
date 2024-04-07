@@ -49,17 +49,12 @@ function ChartsScreen({ modelName }) {
   const [isActive, setIsActive] = useState(false);
   const [wasBreathIn, setBreathInState] = useState(false);
   const [wasBreathOut, setBreathOutState] = useState(false);
-  const [start_time, setStartTime] = useState(new Date().getTime());
-  const [stopped_time, setStoppedTime] = useState(new Date().getTime());
+  const [tenMiliseconds, setTenMiliseconds] = useState(0);
+
 
   function startChart() {
     isRunning.current = !isRunning.current;
     setIsActive(isRunning.current);
-    if (isRunning.current) {
-      setStartTime(new Date().getTime() - stopped_time);
-    }else{
-      setStoppedTime(new Date().getTime());
-    }
   }
 
   async function sleep(ms) {
@@ -72,6 +67,7 @@ function ChartsScreen({ modelName }) {
     setIsActive(isRunning.current);
     await sleep(50);
     setSeconds(0);
+    setTenMiliseconds(0);
     setBreathAmount(0);
     setAccPoints([]);
     setTensPoints([]);
@@ -80,8 +76,6 @@ function ChartsScreen({ modelName }) {
     setTensPointsToDisplay({ values: [], colors: [] });
     setAccPointsToDisplay({ values: [], colors: [] });
     clearLogs();
-    setStartTime(new Date().getTime());
-    setStoppedTime(new Date().getTime());
   }
 
   const formatTime = (timeInSeconds) => {
@@ -143,16 +137,22 @@ function ChartsScreen({ modelName }) {
 
   useEffect(() => {
     let interval;
+    let interval10ms;
     if (isActive) {
       interval = setInterval(() => {
         setSeconds((prevSeconds) => prevSeconds + 1);
       }, 1000);
+      interval10ms = setInterval(() => {
+        setTenMiliseconds((prevTenMiliseconds) => prevTenMiliseconds + 1);
+      }, 10);
     } else {
       clearInterval(interval);
+      clearInterval(interval10ms);
     }
 
     return () => {
       clearInterval(interval);
+      clearInterval(interval10ms);
     };
   }, [isActive]);
 
@@ -209,7 +209,7 @@ function ChartsScreen({ modelName }) {
     try {
       if (isRunning.current) {
         logData("tens");
-        tensPoints[tensPoints.length - 1].x = (new Date().getTime() - start_time)/1000;
+        tensPoints[tensPoints.length - 1].x = (tenMiliseconds);
         if (tensPoints.length >= RANGE) {
           tensPoints.shift();
         }
@@ -239,7 +239,7 @@ function ChartsScreen({ modelName }) {
     try {
       if (isRunning.current) {
         logData("acc");
-        accPoints[accPoints.length - 1].x = (new Date().getTime() - start_time)/1000;
+        accPoints[accPoints.length - 1].x = (tenMiliseconds);
         if (accPoints.length >= RANGE) {
           accPoints.shift();
         }
