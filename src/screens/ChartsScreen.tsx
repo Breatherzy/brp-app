@@ -50,11 +50,16 @@ function ChartsScreen({ modelName }) {
   const [wasBreathIn, setBreathInState] = useState(false);
   const [wasBreathOut, setBreathOutState] = useState(false);
   const [start_time, setStartTime] = useState(new Date().getTime());
+  const [stopped_time, setStoppedTime] = useState(new Date().getTime());
 
   function startChart() {
     isRunning.current = !isRunning.current;
     setIsActive(isRunning.current);
-    setStartTime(new Date().getTime());
+    if (isRunning.current) {
+      setStartTime(new Date().getTime() - stopped_time);
+    }else{
+      setStoppedTime(new Date().getTime());
+    }
   }
 
   async function sleep(ms) {
@@ -76,6 +81,7 @@ function ChartsScreen({ modelName }) {
     setAccPointsToDisplay({ values: [], colors: [] });
     clearLogs();
     setStartTime(new Date().getTime());
+    setStoppedTime(new Date().getTime());
   }
 
   const formatTime = (timeInSeconds) => {
@@ -203,6 +209,7 @@ function ChartsScreen({ modelName }) {
     try {
       if (isRunning.current) {
         logData("tens");
+        tensPoints[tensPoints.length - 1].x = new Date().getTime() - start_time;
         if (tensPoints.length >= RANGE) {
           tensPoints.shift();
         }
@@ -213,7 +220,6 @@ function ChartsScreen({ modelName }) {
         );
 
         normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
-        normalizedTensPoints[normalizedTensPoints.length - 1].x = new Date().getTime() - start_time;
         if (normalizedTensPoints.length > MOVING_TENS_WINDOW) {
           predictData(
             normalizedTensPoints,
@@ -233,6 +239,7 @@ function ChartsScreen({ modelName }) {
     try {
       if (isRunning.current) {
         logData("acc");
+        accPoints[accPoints.length - 1].x = new Date().getTime() - start_time;
         if (accPoints.length >= RANGE) {
           accPoints.shift();
         }
@@ -243,7 +250,6 @@ function ChartsScreen({ modelName }) {
         );
 
         normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
-        normalizedAccPoints[normalizedAccPoints.length - 1].x = new Date().getTime() - start_time;
         if (normalizedAccPoints.length > MOVING_ACC_WINDOW) {
           predictData(
             normalizedAccPoints,
