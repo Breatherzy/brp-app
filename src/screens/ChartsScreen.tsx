@@ -20,7 +20,7 @@ import RNFS from "react-native-fs";
 
 const RANGE = 300;
 const CHART_WINDOW_TENS = 150;
-const CHART_WINDOW_ACC = 375;
+const CHART_WINDOW_ACC = 150;
 const TIME_INTERVAL_TENS = 175;
 const TIME_INTERVAL_ACC = 40;
 const MOVING_TENS_WINDOW = 5;
@@ -296,7 +296,8 @@ function ChartsScreen({ modelName }) {
       setPointsToDisplay((prevPointsToDisplay) => {
         return {
           values: [
-            ...normalizedPoints
+            ...prevPointsToDisplay.values.slice(-chart_size + 1),
+            movingAverageWindowPoints[0],
           ],
           colors: [
             ...prevPointsToDisplay.colors.slice(-chart_size + 1),
