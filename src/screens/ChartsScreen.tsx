@@ -209,7 +209,7 @@ function ChartsScreen({ modelName }) {
     try {
       if (isRunning.current) {
         logData("tens");
-        tensPoints[tensPoints.length - 1].x = new Date().getTime() - start_time;
+        tensPoints[tensPoints.length - 1].x = (new Date().getTime() - start_time)/1000;
         if (tensPoints.length >= RANGE) {
           tensPoints.shift();
         }
@@ -239,7 +239,7 @@ function ChartsScreen({ modelName }) {
     try {
       if (isRunning.current) {
         logData("acc");
-        accPoints[accPoints.length - 1].x = new Date().getTime() - start_time;
+        accPoints[accPoints.length - 1].x = (new Date().getTime() - start_time)/1000;
         if (accPoints.length >= RANGE) {
           accPoints.shift();
         }
