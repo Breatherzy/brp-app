@@ -18,9 +18,9 @@ import {
 
 import RNFS from "react-native-fs";
 
-const RANGE = 300;
-const CHART_WINDOW_TENS = 150;
-const CHART_WINDOW_ACC = 150;
+const RANGE = 275;
+const CHART_WINDOW_TENS = 100;
+const CHART_WINDOW_ACC = 250;
 const TIME_INTERVAL_TENS = 175;
 const TIME_INTERVAL_ACC = 40;
 const MOVING_TENS_WINDOW = 5;
@@ -143,8 +143,8 @@ function ChartsScreen({ modelName }) {
         setSeconds((prevSeconds) => prevSeconds + 1);
       }, 1000);
       interval10ms = setInterval(() => {
-        setTenMiliseconds((prevTenMiliseconds) => prevTenMiliseconds + 1);
-      }, 10);
+        setTenMiliseconds((prevTenMiliseconds) => prevTenMiliseconds + 0.04);
+      }, 40);
     } else {
       clearInterval(interval);
       clearInterval(interval10ms);
@@ -209,7 +209,6 @@ function ChartsScreen({ modelName }) {
     try {
       if (isRunning.current) {
         logData("tens");
-        tensPoints[tensPoints.length - 1].x = (tenMiliseconds);
         if (tensPoints.length >= RANGE) {
           tensPoints.shift();
         }
@@ -220,6 +219,7 @@ function ChartsScreen({ modelName }) {
         );
 
         normalizedTensPoints = handleNaN(normalize(smoothedTensPoints));
+        normalizedTensPoints[normalizedTensPoints.length - 1].x = (tenMiliseconds);
         if (normalizedTensPoints.length > MOVING_TENS_WINDOW) {
           predictData(
             normalizedTensPoints,
@@ -239,7 +239,6 @@ function ChartsScreen({ modelName }) {
     try {
       if (isRunning.current) {
         logData("acc");
-        accPoints[accPoints.length - 1].x = (tenMiliseconds);
         if (accPoints.length >= RANGE) {
           accPoints.shift();
         }
@@ -250,6 +249,7 @@ function ChartsScreen({ modelName }) {
         );
 
         normalizedAccPoints = handleNaN(normalize(smoothedAccPoints));
+        normalizedAccPoints[normalizedAccPoints.length - 1].x = (tenMiliseconds);
         if (normalizedAccPoints.length > MOVING_ACC_WINDOW) {
           predictData(
             normalizedAccPoints,
