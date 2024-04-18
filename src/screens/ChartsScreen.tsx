@@ -282,6 +282,11 @@ function ChartsScreen({ modelName, connection}) {
           if (wasBreathIn && window == MOVING_TENS_WINDOW) {
             setBreathOutState(true);
           }
+        } else if (prediction[0] == 2) {
+          newColor = processColor("orange");
+          if (wasBreathIn && window == MOVING_TENS_WINDOW) {
+            setBreathOutState(true);
+          }
         }
       }
 
