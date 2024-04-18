@@ -53,7 +53,7 @@ declare module "react-native-ble-manager" {
   }
 }
 
-const ConnectScreen = () => {
+const ConnectScreen = ({ setConnected }) => {
   const { setAccPoints } = useAccelerometerData();
   const { setTensPoints } = useTensometerData();
   const [batteryLevels, setBatteryLevels] = useState(new Map());
@@ -250,8 +250,17 @@ const ConnectScreen = () => {
   const retrieveConnected = async () => {
     try {
       const connectedPeripherals = await BleManager.getConnectedPeripherals();
+
+      //remove peripherals that are not in the allowed list
+      connectedPeripherals.forEach((peripheral) => {
+        if (!ALLOWED_NAMES.includes(peripheral.name)) {
+          connectedPeripherals.splice(connectedPeripherals.indexOf(peripheral), 1);
+        }
+      });
+
       if (connectedPeripherals.length === 0) {
-        //console.warn("[retrieveConnected] No connected peripherals found.");
+        console.log("[retrieveConnected] No connected peripherals found.");
+        setConnected(false);
         return;
       }
 
@@ -285,6 +294,7 @@ const ConnectScreen = () => {
 
         await BleManager.connect(peripheral.id);
         console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
+        setConnected(true);
 
         addOrUpdatePeripheral(peripheral.id, {
           ...peripheral,

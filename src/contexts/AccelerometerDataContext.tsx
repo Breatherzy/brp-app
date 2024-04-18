@@ -1,7 +1,7 @@
 import {createContext} from 'react';
 
 export interface AccelerometerDataContextType {
-  accPoints: Array<{y: number}>;
+  accPoints: Array<{y: number, x: number}>;
   setAccPoints: React.Dispatch<React.SetStateAction<Array<{y: number}>>>;
 }
 

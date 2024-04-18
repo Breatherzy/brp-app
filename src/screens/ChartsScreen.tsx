@@ -18,14 +18,13 @@ import {
 
 import RNFS from "react-native-fs";
 
-const RANGE = 300;
-const CHART_WINDOW = 150;
-const TIME_INTERVAL_TENS = 100;
-const TIME_INTERVAL_ACC = 45;
+const RANGE = 200;
+const CHART_WINDOW_TENS = 150;
+const CHART_WINDOW_ACC = 150;
 const MOVING_TENS_WINDOW = 5;
 const MOVING_ACC_WINDOW = 11;
 
-function ChartsScreen({ modelName }) {
+function ChartsScreen({ modelName, connection}) {
   const { accPoints, setAccPoints } = useAccelerometerData();
   const { tensPoints, setTensPoints } = useTensometerData();
   const { seconds, setSeconds } = useUserData();
@@ -80,7 +79,7 @@ function ChartsScreen({ modelName }) {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
-  async function readDemoData(filename, interval) {
+  async function readDemoData(filename) {
     try {
       let content;
       setIsPlaying(true);
@@ -95,6 +94,7 @@ function ChartsScreen({ modelName }) {
       reset.current = false;
       setIsActive(isRunning.current);
       const lines = content.split("\n");
+      let pauseTime = 0;
       for (let line of lines) {
         while (!isRunning.current) {
           await new Promise<void>((resolve) => setTimeout(resolve, 500));
@@ -110,12 +110,16 @@ function ChartsScreen({ modelName }) {
           reset.current = false;
           break;
         }
-        await new Promise<void>((resolve) => setTimeout(resolve, interval));
-        let yValue = parseFloat(line);
+        let xValue = parseFloat(line.split(",")[0]);
+        let yValue = parseFloat(line.split(",")[1]);
+        pauseTime = xValue * 1000 - pauseTime;
+        // console.log(`[readDemoData ${filename}] x: ${xValue}, y: ${yValue} pause: ${pauseTime}`);
+        await new Promise<void>((resolve) => setTimeout(resolve, pauseTime));
+        pauseTime = xValue * 1000;
         if (filename.includes("tens")) {
-          setTensPoints((tensPoints) => [...tensPoints, { y: yValue }]);
+          setTensPoints((tensPoints) => [...tensPoints, { y: yValue, x: xValue }]);
         } else if (filename.includes("acc")) {
-          setAccPoints((accPoints) => [...accPoints, { y: yValue }]);
+          setAccPoints((accPoints) => [...accPoints, { y: yValue, x: xValue }]);
         }
       }
       isRunning.current = false;
@@ -202,7 +206,7 @@ function ChartsScreen({ modelName }) {
         }
 
         const smoothedTensPoints = movingAverage(
-          tensPoints.slice(-CHART_WINDOW),
+          tensPoints.slice(-CHART_WINDOW_TENS),
           MOVING_TENS_WINDOW
         );
 
@@ -213,7 +217,8 @@ function ChartsScreen({ modelName }) {
             normalizedTensPoints,
             useTensPrediction,
             MOVING_TENS_WINDOW,
-            setTensPointsToDisplay
+            setTensPointsToDisplay,
+            CHART_WINDOW_TENS
           );
         }
       }
@@ -231,7 +236,7 @@ function ChartsScreen({ modelName }) {
         }
 
         const smoothedAccPoints = movingAverage(
-          accPoints.slice(-CHART_WINDOW),
+          accPoints.slice(-CHART_WINDOW_ACC),
           MOVING_ACC_WINDOW
         );
 
@@ -242,7 +247,8 @@ function ChartsScreen({ modelName }) {
             normalizedAccPoints,
             useAccPrediction,
             MOVING_ACC_WINDOW,
-            setAccPointsToDisplay
+            setAccPointsToDisplay,
+            CHART_WINDOW_ACC
           );
         }
       }
@@ -255,7 +261,8 @@ function ChartsScreen({ modelName }) {
     normalizedPoints,
     usePrediction,
     window,
-    setPointsToDisplay
+    setPointsToDisplay,
+    chart_window
   ) {
     try {
       const movingAverageWindowPoints = normalizedPoints.slice(-window);
@@ -275,17 +282,22 @@ function ChartsScreen({ modelName }) {
           if (wasBreathIn && window == MOVING_TENS_WINDOW) {
             setBreathOutState(true);
           }
+        } else if (prediction[0] == 2) {
+          newColor = processColor("orange");
+          if (wasBreathIn && window == MOVING_TENS_WINDOW) {
+            setBreathOutState(true);
+          }
         }
       }
 
       setPointsToDisplay((prevPointsToDisplay) => {
         return {
           values: [
-            ...prevPointsToDisplay.values.slice(-CHART_WINDOW + 1),
+            ...prevPointsToDisplay.values.slice(-chart_window + 1),
             movingAverageWindowPoints[0],
           ],
           colors: [
-            ...prevPointsToDisplay.colors.slice(-CHART_WINDOW + 1),
+            ...prevPointsToDisplay.colors.slice(-chart_window + 1),
             newColor,
           ],
         };
@@ -313,7 +325,7 @@ function ChartsScreen({ modelName }) {
         for (let j = 0; j < n; j++) {
           sum += data[i - j].y;
         }
-        result.push({ y: sum / n });
+        result.push({ y: sum / n, x: data[i].x });
       }
     }
     return result;
@@ -323,13 +335,13 @@ function ChartsScreen({ modelName }) {
     let maxY = Math.max(...data.map((p: { y: any }) => p.y));
     let minY = Math.min(...data.map((p: { y: any }) => p.y));
     return data.map((point) => ({
-      y: (2 * (point.y - minY)) / (maxY - minY) - 1,
+      y: (2 * (point.y - minY)) / (maxY - minY) - 1, x: point.x
     }));
   }
 
   function handleNaN(data, defaultValue = 0) {
     return data.map((point) => ({
-      y: isNaN(point.y) ? defaultValue : point.y,
+      y: isNaN(point.y) ? defaultValue : point.y, x: point.x
     }));
   }
 
@@ -344,11 +356,11 @@ function ChartsScreen({ modelName }) {
         <View style={styles.buttons}>
           <TouchableOpacity
             onPress={() => {
-              readDemoData("acc_test", TIME_INTERVAL_ACC),
-                readDemoData("tens_test", TIME_INTERVAL_TENS);
+              readDemoData("acc_test"),
+              readDemoData("tens_test");
             }}
             style={styles.demoChartStyle}
-            disabled={isPlaying}
+            disabled={isPlaying || connection}
           >
             <Text
               numberOfLines={1}
@@ -356,6 +368,7 @@ function ChartsScreen({ modelName }) {
               style={styles.startChartButtonText}
             >
               {isPlaying ? "PLAYING..." : "DEMO"}
+              {connection ? " (DISABLED)" : ""}
             </Text>
           </TouchableOpacity>
 

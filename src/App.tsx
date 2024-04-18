@@ -33,6 +33,7 @@ const App = () => {
   const [accPoints, setAccPoints] = useState([]);
   const [tensPoints, setTensPoints] = useState([]);
   const [seconds, setSeconds] = useState(0);
+  const [connected, setConnected] = useState(false);
   const [breathAmount, setBreathAmount] = useState(0);
   const [modelName, setModelName] = useState("GRUModel");
   const [statusBar, setStatusBar] = useState({
@@ -58,9 +59,20 @@ const App = () => {
           >
             <NavigationContainer>
               <Tab.Navigator>
-                <Tab.Screen name="Connect" component={ConnectScreen} />
+                <Tab.Screen name="Connect">
+                  {() => (
+                    <ConnectScreen
+                      setConnected={setConnected}
+                    />
+                  )}
+                </Tab.Screen>
                 <Tab.Screen name="Charts">
-                  {() => <ChartsScreen modelName={statusBar.selectedModel} />}
+                  {() => (
+                    <ChartsScreen
+                      modelName={statusBar.selectedModel}
+                      connection={connected}
+                    />
+                  )}
                 </Tab.Screen>
                 <Tab.Screen name="Statistics" component={StatisticScreen} />
                 <Tab.Screen name="Settings">
