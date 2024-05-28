@@ -19,7 +19,7 @@ function StatisticScreen() {
             adjustsFontSizeToFit
             style={styles.breathCounterText}
           >
-            Ilość oddechów:
+            Number of breaths:
           </Text>
           <Text
             numberOfLines={1}
@@ -35,7 +35,7 @@ function StatisticScreen() {
             adjustsFontSizeToFit
             style={styles.averageBreaths}
           >
-            Średnia ilość oddechów:
+            Avg breaths per minute:
           </Text>
           <Text
             numberOfLines={1}
