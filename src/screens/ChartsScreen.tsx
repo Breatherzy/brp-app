@@ -22,6 +22,7 @@ const CHART_WINDOW_TENS = 150;
 const CHART_WINDOW_ACC = 150;
 const MOVING_TENS_WINDOW = 5;
 const MOVING_ACC_WINDOW = 11;
+const NOISE_THRESHOLD = 0.05;
 
 function ChartsScreen({ modelName, connection }) {
   const { accPoints, setAccPoints } = useAccelerometerData();
@@ -228,6 +229,15 @@ function ChartsScreen({ modelName, connection }) {
     try {
       if (isRunning.current) {
         logData("acc");
+
+        if (accPoints.length >= 2) {
+          const prevValue = accPoints[accPoints.length - 2];
+          const currentValue = accPoints[accPoints.length - 1];
+          console.debug("inodeData: ", prevValue);
+          if (Math.abs(currentValue.y - prevValue.y) < NOISE_THRESHOLD)
+            accPoints[accPoints.length - 1] = prevValue;
+        }
+
         if (accPoints.length >= RANGE) {
           accPoints.shift();
         }
