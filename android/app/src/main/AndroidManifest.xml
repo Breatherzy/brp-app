@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" 
   xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!--
       HACK: this permission should not be needed on android 12+ devices anymore,
       but in fact some manufacturers still need it for BLE to properly work :

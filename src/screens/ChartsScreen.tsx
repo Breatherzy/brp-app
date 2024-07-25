@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   processColor,
-  Platform,
 } from "react-native";
 import { LineChart } from "react-native-charts-wrapper";
 import React, { useState, useEffect, useRef } from "react";
@@ -24,7 +23,7 @@ const CHART_WINDOW_ACC = 150;
 const MOVING_TENS_WINDOW = 5;
 const MOVING_ACC_WINDOW = 11;
 
-function ChartsScreen({ modelName, connection}) {
+function ChartsScreen({ modelName, connection }) {
   const { accPoints, setAccPoints } = useAccelerometerData();
   const { tensPoints, setTensPoints } = useTensometerData();
   const { seconds, setSeconds } = useUserData();
@@ -83,13 +82,8 @@ function ChartsScreen({ modelName, connection}) {
     try {
       let content;
       setIsPlaying(true);
-      if (Platform.OS === "ios") {
-        const filePath = `${RNFS.MainBundlePath}/${filename}.txt`;
-        content = await RNFS.readFile(filePath, "utf8");
-      } else if (Platform.OS === "android") {
-        const assetPath = `${filename}.txt`;
-        content = await RNFS.readFileAssets(assetPath, "utf8");
-      }
+      const assetPath = `${filename}.txt`;
+      content = await RNFS.readFileAssets(assetPath, "utf8");
       isRunning.current = true;
       reset.current = false;
       setIsActive(isRunning.current);
@@ -117,7 +111,10 @@ function ChartsScreen({ modelName, connection}) {
         await new Promise<void>((resolve) => setTimeout(resolve, pauseTime));
         pauseTime = xValue * 1000;
         if (filename.includes("tens")) {
-          setTensPoints((tensPoints) => [...tensPoints, { y: yValue, x: xValue }]);
+          setTensPoints((tensPoints) => [
+            ...tensPoints,
+            { y: yValue, x: xValue },
+          ]);
         } else if (filename.includes("acc")) {
           setAccPoints((accPoints) => [...accPoints, { y: yValue, x: xValue }]);
         }
@@ -335,13 +332,15 @@ function ChartsScreen({ modelName, connection}) {
     let maxY = Math.max(...data.map((p: { y: any }) => p.y));
     let minY = Math.min(...data.map((p: { y: any }) => p.y));
     return data.map((point) => ({
-      y: (2 * (point.y - minY)) / (maxY - minY) - 1, x: point.x
+      y: (2 * (point.y - minY)) / (maxY - minY) - 1,
+      x: point.x,
     }));
   }
 
   function handleNaN(data, defaultValue = 0) {
     return data.map((point) => ({
-      y: isNaN(point.y) ? defaultValue : point.y, x: point.x
+      y: isNaN(point.y) ? defaultValue : point.y,
+      x: point.x,
     }));
   }
 
@@ -356,8 +355,7 @@ function ChartsScreen({ modelName, connection}) {
         <View style={styles.buttons}>
           <TouchableOpacity
             onPress={() => {
-              readDemoData("acc_test"),
-              readDemoData("tens_test");
+              readDemoData("acc_test"), readDemoData("tens_test");
             }}
             style={styles.demoChartStyle}
             disabled={isPlaying || connection}
