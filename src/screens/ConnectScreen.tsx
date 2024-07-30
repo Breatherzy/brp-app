@@ -25,6 +25,11 @@ const INODE_BATTERY_SERVICE_UUID = "180f";
 const INODE_BATTERY_CHARACTERISTIC_UUID = "2a19";
 const ACC_SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
 const ACC_CHARACTERISTIC_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
+const ACC_CHARACTERISTIC_UUID_WRITE = "0000ffe9-0000-1000-8000-00805f9a34fb";
+const ACC_RESPONSE_SIGN = 0x71;
+const ACC_BATTERY_STATUS_COMMAND = [0xff, 0xaa, 0x27, 0x64, 0x00];
+const ACC_CALIBRATION_COMMAND = [0xff, 0xaa, 0x01, 0x01, 0x00];
+const ACC_CALIBRATION_COMMAND_END = [0xff, 0xaa, 0x01, 0x00, 0x00];
 const TENS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const TENS_CHARACTERISTIC_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 const SERVICE_UUIDS: string[] = [];
@@ -132,11 +137,27 @@ const ConnectScreen = ({ setConnected }) => {
   const handleUpdateValueForCharacteristic = (
     data: BleManagerDidUpdateValueForCharacteristicEvent
   ) => {
+    // const hexArray = Array.from(data.value, (num) => num.toString(16));
+    // const hexString = hexArray.join(", ");
     // console.debug(
-    //   `[handleUpdateValueForCharacteristic] received data from '${data.peripheral}' with characteristic='${data.characteristic}' and value='${data.value}'`
+    //   `Received data from '${data.peripheral}' value='${hexString}'`
     // );
     if (data.service == ACC_SERVICE_UUID) {
-      const accelerometerValue = computeAccelerometerValue(data);
+      if (data.value[1] == ACC_RESPONSE_SIGN && data.value[2] == 0x64) {
+        const voltageValue = data.value[5] * 256 + data.value[4];
+
+        const batteryLevel = mapVoltageToBattery(voltageValue);
+
+        console.debug(
+          `[handleUpdateValueForCharacteristic][${data.peripheral}] voltage: ${voltageValue} battery: ${batteryLevel}%`
+        );
+
+        setBatteryLevels((prev) => {
+          prev.set(data.peripheral, batteryLevel);
+          return new Map(prev);
+        });
+      }
+      const accelerometerValue = computeAngleValue(data);
       setAccPoints((prevData) => [...prevData, { y: accelerometerValue }]);
     } else if (data.service == TENS_SERVICE_UUID) {
       const tensometerData = computeTensometerValue(data);
@@ -151,16 +172,44 @@ const ConnectScreen = ({ setConnected }) => {
     }
   };
 
-  const computeAccelerometerValue = (data: { value: Iterable<number> }) => {
+  const mapVoltageToBattery = (voltage: number): number => {
+    if (voltage >= 396) {
+      return 100;
+    } else if (voltage >= 393) {
+      return 90;
+    } else if (voltage >= 387) {
+      return 75;
+    } else if (voltage >= 382) {
+      return 60;
+    } else if (voltage >= 379) {
+      return 50;
+    } else if (voltage >= 377) {
+      return 40;
+    } else if (voltage >= 373) {
+      return 30;
+    } else if (voltage >= 370) {
+      return 20;
+    } else if (voltage >= 368) {
+      return 15;
+    } else if (voltage >= 350) {
+      return 10;
+    } else if (voltage >= 340) {
+      return 5;
+    } else {
+      return 0;
+    }
+  };
+
+  const computeAccelerationValue = (data: { value: Iterable<number> }) => {
     const bytes = new Int8Array(data.value);
 
     // Extract high and low bytes for each axis
-    const axH = bytes[3];
     const axL = bytes[2];
-    const ayH = bytes[5];
+    const axH = bytes[3];
     const ayL = bytes[4];
-    const azH = bytes[7];
+    const ayH = bytes[5];
     const azL = bytes[6];
+    const azH = bytes[7];
 
     // Convert bytes to float values for each axis
     const ax = ((axH * 256 + axL) / 32768.0) * 16;
@@ -170,6 +219,50 @@ const ConnectScreen = ({ setConnected }) => {
     const sumAcc = Math.abs(ax + ay + az);
 
     return sumAcc;
+  };
+
+  const computeAngularVelocityValue = (data: { value: Iterable<number> }) => {
+    const bytes = new Int8Array(data.value);
+
+    const wxL = bytes[8];
+    const wxH = bytes[9];
+    const wyL = bytes[10];
+    const wyH = bytes[11];
+    const wzL = bytes[12];
+    const wzH = bytes[13];
+
+    // Convert bytes to float values for each axis
+    const wx = ((wxH * 256 + wxL) / 32768.0) * 2000;
+    const wy = ((wyH * 256 + wyL) / 32768.0) * 2000;
+    const wz = ((wzH * 256 + wzL) / 32768.0) * 2000;
+
+    console.debug(`wx: ${wx}\twy: ${wy}\twz: ${wz}`);
+
+    const sumGyro = Math.abs(wx + wy + wz);
+
+    return sumGyro;
+  };
+
+  const computeAngleValue = (data: { value: Iterable<number> }) => {
+    const bytes = new Int8Array(data.value);
+
+    const RollL = bytes[14];
+    const RollH = bytes[15];
+    const PitchL = bytes[16];
+    const PitchH = bytes[17];
+    const YawL = bytes[18];
+    const YawH = bytes[19];
+
+    // Convert bytes to float values for each axis
+    const Roll = ((RollH * 256 + RollL) / 32768.0) * 180;
+    const Pitch = ((PitchH * 256 + PitchL) / 32768.0) * 180;
+    const Yaw = ((YawH * 256 + YawL) / 32768.0) * 180;
+
+    console.debug(`Roll: ${Roll}\tPitch: ${Pitch}\tYaw: ${Yaw}`);
+
+    const sumAngle = Pitch;
+
+    return sumAngle;
   };
 
   function uint8ArrayToString(data) {
@@ -254,7 +347,10 @@ const ConnectScreen = ({ setConnected }) => {
       //remove peripherals that are not in the allowed list
       connectedPeripherals.forEach((peripheral) => {
         if (!ALLOWED_NAMES.includes(peripheral.name)) {
-          connectedPeripherals.splice(connectedPeripherals.indexOf(peripheral), 1);
+          connectedPeripherals.splice(
+            connectedPeripherals.indexOf(peripheral),
+            1
+          );
         }
       });
 
@@ -315,7 +411,7 @@ const ConnectScreen = ({ setConnected }) => {
         const services = peripheralData.characteristics?.map((c) => c.service);
 
         if (services?.includes(INODE_SERVICE_UUID)) {
-          BleManager.write(
+          await BleManager.write(
             peripheral.id,
             INODE_SERVICE_UUID,
             INODE_CHARACTERISTIC_UUID,
@@ -333,7 +429,7 @@ const ConnectScreen = ({ setConnected }) => {
               );
             });
 
-          BleManager.read(
+          await BleManager.read(
             peripheral.id,
             INODE_BATTERY_SERVICE_UUID,
             INODE_BATTERY_CHARACTERISTIC_UUID
@@ -366,6 +462,29 @@ const ConnectScreen = ({ setConnected }) => {
         }
 
         if (services?.includes(ACC_SERVICE_UUID)) {
+          await BleManager.write(
+            peripheral.id,
+            ACC_SERVICE_UUID,
+            ACC_CHARACTERISTIC_UUID_WRITE,
+            ACC_CALIBRATION_COMMAND
+          );
+          console.debug(
+            `[connectPeripheral][${peripheral.id}] calibration command sent.`
+          );
+          for (let i = 5; i > 0; i--) {
+            console.debug(
+              `[connectPeripheral][${peripheral.id}] waiting for calibration {${i}}...`
+            );
+            await sleep(1000);
+          }
+
+          await BleManager.write(
+            peripheral.id,
+            ACC_SERVICE_UUID,
+            ACC_CHARACTERISTIC_UUID_WRITE,
+            ACC_CALIBRATION_COMMAND_END
+          );
+
           await BleManager.startNotification(
             peripheral.id,
             ACC_SERVICE_UUID,
@@ -373,6 +492,13 @@ const ConnectScreen = ({ setConnected }) => {
           );
           console.debug(
             `[connectPeripheral][${peripheral.id}] started notification for accelerometer service.`
+          );
+
+          await BleManager.write(
+            peripheral.id,
+            ACC_SERVICE_UUID,
+            ACC_CHARACTERISTIC_UUID_WRITE,
+            ACC_BATTERY_STATUS_COMMAND
           );
         }
 
