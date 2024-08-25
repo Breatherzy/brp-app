@@ -236,7 +236,7 @@ const ConnectScreen = ({ setConnected }) => {
     const wy = ((wyH * 256 + wyL) / 32768.0) * 2000;
     const wz = ((wzH * 256 + wzL) / 32768.0) * 2000;
 
-    console.debug(`wx: ${wx}\twy: ${wy}\twz: ${wz}`);
+    //console.debug(`wx: ${wx}\twy: ${wy}\twz: ${wz}`);
 
     const sumGyro = Math.abs(wx + wy + wz);
 
@@ -258,7 +258,7 @@ const ConnectScreen = ({ setConnected }) => {
     const Pitch = ((PitchH * 256 + PitchL) / 32768.0) * 180;
     const Yaw = ((YawH * 256 + YawL) / 32768.0) * 180;
 
-    console.debug(`Roll: ${Roll}\tPitch: ${Pitch}\tYaw: ${Yaw}`);
+    //console.debug(`Roll: ${Roll}\tPitch: ${Pitch}\tYaw: ${Yaw}`);
 
     const sumAngle = Pitch;
 
@@ -462,29 +462,27 @@ const ConnectScreen = ({ setConnected }) => {
         }
 
         if (services?.includes(ACC_SERVICE_UUID)) {
-          await BleManager.write(
-            peripheral.id,
-            ACC_SERVICE_UUID,
-            ACC_CHARACTERISTIC_UUID_WRITE,
-            ACC_CALIBRATION_COMMAND
-          );
-          console.debug(
-            `[connectPeripheral][${peripheral.id}] calibration command sent.`
-          );
-          for (let i = 5; i > 0; i--) {
-            console.debug(
-              `[connectPeripheral][${peripheral.id}] waiting for calibration {${i}}...`
-            );
-            await sleep(1000);
-          }
-
-          await BleManager.write(
-            peripheral.id,
-            ACC_SERVICE_UUID,
-            ACC_CHARACTERISTIC_UUID_WRITE,
-            ACC_CALIBRATION_COMMAND_END
-          );
-
+          // await BleManager.write(
+          //   peripheral.id,
+          //   ACC_SERVICE_UUID,
+          //   ACC_CHARACTERISTIC_UUID_WRITE,
+          //   ACC_CALIBRATION_COMMAND
+          // );
+          // console.debug(
+          //   `[connectPeripheral][${peripheral.id}] calibration command sent.`
+          // );
+          // for (let i = 5; i > 0; i--) {
+          //   console.debug(
+          //     `[connectPeripheral][${peripheral.id}] waiting for calibration {${i}}...`
+          //   );
+          //   await sleep(1000);
+          // }
+          // await BleManager.write(
+          //   peripheral.id,
+          //   ACC_SERVICE_UUID,
+          //   ACC_CHARACTERISTIC_UUID_WRITE,
+          //   ACC_CALIBRATION_COMMAND_END
+          // );
           await BleManager.startNotification(
             peripheral.id,
             ACC_SERVICE_UUID,

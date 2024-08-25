@@ -60,11 +60,7 @@ const App = () => {
             <NavigationContainer>
               <Tab.Navigator>
                 <Tab.Screen name="Connect">
-                  {() => (
-                    <ConnectScreen
-                      setConnected={setConnected}
-                    />
-                  )}
+                  {() => <ConnectScreen setConnected={setConnected} />}
                 </Tab.Screen>
                 <Tab.Screen name="Charts">
                   {() => (
