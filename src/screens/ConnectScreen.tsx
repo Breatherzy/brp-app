@@ -28,8 +28,6 @@ const ACC_CHARACTERISTIC_UUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
 const ACC_CHARACTERISTIC_UUID_WRITE = "0000ffe9-0000-1000-8000-00805f9a34fb";
 const ACC_RESPONSE_SIGN = 0x71;
 const ACC_BATTERY_STATUS_COMMAND = [0xff, 0xaa, 0x27, 0x64, 0x00];
-const ACC_CALIBRATION_COMMAND = [0xff, 0xaa, 0x01, 0x01, 0x00];
-const ACC_CALIBRATION_COMMAND_END = [0xff, 0xaa, 0x01, 0x00, 0x00];
 const TENS_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 const TENS_CHARACTERISTIC_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 const SERVICE_UUIDS: string[] = [];
@@ -462,27 +460,6 @@ const ConnectScreen = ({ setConnected }) => {
         }
 
         if (services?.includes(ACC_SERVICE_UUID)) {
-          // await BleManager.write(
-          //   peripheral.id,
-          //   ACC_SERVICE_UUID,
-          //   ACC_CHARACTERISTIC_UUID_WRITE,
-          //   ACC_CALIBRATION_COMMAND
-          // );
-          // console.debug(
-          //   `[connectPeripheral][${peripheral.id}] calibration command sent.`
-          // );
-          // for (let i = 5; i > 0; i--) {
-          //   console.debug(
-          //     `[connectPeripheral][${peripheral.id}] waiting for calibration {${i}}...`
-          //   );
-          //   await sleep(1000);
-          // }
-          // await BleManager.write(
-          //   peripheral.id,
-          //   ACC_SERVICE_UUID,
-          //   ACC_CHARACTERISTIC_UUID_WRITE,
-          //   ACC_CALIBRATION_COMMAND_END
-          // );
           await BleManager.startNotification(
             peripheral.id,
             ACC_SERVICE_UUID,
