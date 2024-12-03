@@ -20,7 +20,7 @@ import { promptForEnableLocationIfNeeded } from "react-native-android-location-e
 const SECONDS_TO_SCAN_FOR = 3;
 const INODE_SERVICE_UUID = "04710c44-c624-de89-c1bc-4396089d1886";
 const INODE_CHARACTERISTIC_UUID = "04710c43-4c62-4de8-9c1b-c439689d1886";
-const INODE_WORK_MODE = [0xc0, 0x84];
+const INODE_WORK_MODE = [0xc0, 0x04];
 const INODE_BATTERY_SERVICE_UUID = "180f";
 const INODE_BATTERY_CHARACTERISTIC_UUID = "2a19";
 const ACC_SERVICE_UUID = "0000ffe5-0000-1000-8000-00805f9a34fb";
