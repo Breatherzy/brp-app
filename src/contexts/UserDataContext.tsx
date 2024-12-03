@@ -1,4 +1,4 @@
-import {createContext} from 'react';
+import { createContext } from "react";
 
 export interface UserDataContextType {
   seconds: number;
@@ -8,7 +8,7 @@ export interface UserDataContextType {
 }
 
 const UserDataContext = createContext<UserDataContextType | undefined>(
-  undefined,
+  undefined
 );
 
 export default UserDataContext;

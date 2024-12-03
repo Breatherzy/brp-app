@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "start": "react-native start",
     "kill": "taskkill /F /IM java.exe & taskkill /F /IM adb.exe & taskkill /F /IM node.exe",
+    "prettier": "prettier --write .",
     "test": "jest"
   },
   "dependencies": {
